@@ -57,7 +57,7 @@ val wearCostPer1600Km = 60f    // Verschleißkosten für 1600km
 2. **Endladezustand** einstellen (nach der Fahrt)
 3. **Anzahl Mitfahrer** wählen (0-4)
 4. **"Berechnen"** drücken
-5. Ergebnis zeigt: benötigte kWh, Gesamtkosten, Kosten pro Person
+5. **Ergebnis zeigt:** benötigte kWh, Gesamtkosten, Kosten pro Person
 
 ### Verschleiß berechnen
 1. Zum **"Verschleiß"** Tab wechseln
