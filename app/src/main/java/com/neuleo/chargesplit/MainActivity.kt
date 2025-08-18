@@ -118,20 +118,56 @@ fun ChargeSplitScreen(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(text = "Ladezustand am Start: ${startSOC.toInt()}%", style = MaterialTheme.typography.bodyLarge)
-        Slider(
-            value = startSOC,
-            onValueChange = { startSOC = it },
-            valueRange = 0f..100f,
-            steps = 98
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = { if (startSOC > 0f) startSOC = (startSOC - 1f).coerceAtLeast(0f) },
+                enabled = startSOC > 0f
+            ) {
+                Text(text = "-")
+            }
+            Slider(
+                value = startSOC,
+                onValueChange = { startSOC = it },
+                valueRange = 0f..100f,
+                steps = 98,
+                modifier = Modifier.weight(1f)
+            )
+            Button(
+                onClick = { if (startSOC < 100f) startSOC = (startSOC + 1f).coerceAtMost(100f) },
+                enabled = startSOC < 100f
+            ) {
+                Text(text = "+")
+            }
+        }
 
         Text(text = "Ladezustand am Ende: ${endSOC.toInt()}%", style = MaterialTheme.typography.bodyLarge)
-        Slider(
-            value = endSOC,
-            onValueChange = { endSOC = it },
-            valueRange = 0f..100f,
-            steps = 98
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = { if (endSOC > 0f) endSOC = (endSOC - 1f).coerceAtLeast(0f) },
+                enabled = endSOC > 0f
+            ) {
+                Text(text = "-")
+            }
+            Slider(
+                value = endSOC,
+                onValueChange = { endSOC = it },
+                valueRange = 0f..100f,
+                steps = 98,
+                modifier = Modifier.weight(1f)
+            )
+            Button(
+                onClick = { if (endSOC < 100f) endSOC = (endSOC + 1f).coerceAtMost(100f) },
+                enabled = endSOC < 100f
+            ) {
+                Text(text = "+")
+            }
+        }
 
         Text(text = "Anzahl Mitfahrer: $passengers", style = MaterialTheme.typography.bodyLarge)
         Row(
