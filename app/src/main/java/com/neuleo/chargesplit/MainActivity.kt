@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -30,13 +32,37 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ChargeSplitTheme {
+                val context = LocalContext.current
+                val prefsManager = remember {
+                    PreferencesManager(context.getSharedPreferences("chargesplit_prefs", Context.MODE_PRIVATE))
+                }
+                var showSettingsDialog by remember { mutableStateOf(false) }
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        TopAppBar(title = { Text("ChargeSplit") })
+                        TopAppBar(
+                            title = { Text("ChargeSplit") },
+                            actions = {
+                                IconButton(onClick = { showSettingsDialog = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Settings,
+                                        contentDescription = "Einstellungen"
+                                    )
+                                }
+                            }
+                        )
                     }
                 ) { innerPadding ->
-                    MainScreen(modifier = Modifier.padding(innerPadding))
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        MainScreen(prefsManager = prefsManager)
+                        if (showSettingsDialog) {
+                            SettingsDialog(
+                                prefsManager = prefsManager,
+                                onDismiss = { showSettingsDialog = false }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -45,7 +71,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun MainScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) {
     val tabs = CalculatorUtils.TABS
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
