@@ -15,16 +15,19 @@ ChargeSplit is a mobile utility app that allows electric vehicle (EV) owners to 
 1. **Charging Cost Calculator (Ladekosten-Rechner)**:
    - Inputs for Battery State of Charge (SOC) at the start and end of the trip.
    - Interactive sliders and fine-tuning buttons (+/-) for ease of entry.
-   - Pre-configured battery capacity (e.g., 70 kWh), cost per kWh (e.g., €0.35), and charging efficiency (90%).
+   - Battery capacity, cost per kWh, and charging efficiency variables customizable in settings (falling back to defaults of 70 kWh, €0.35, and 90% respectively).
    - Calculation of energy consumed, total cost, and equal division among all occupants.
 
 2. **Wear & Tear Calculator (Verschleiß-Rechner)**:
    - Input for kilometers driven during the trip.
-   - Base wear-and-tear rate calculation (€60 per 1600 km).
+   - Base wear-and-tear rate customizable in settings (falling back to a default of €60 per 1600 km).
    - Equal division of the wear cost among the driver and passengers.
 
-3. **Persistent Inputs**:
-   - Values for SOC, passenger counts, and mileage are saved locally on the device (via SharedPreferences) and restored on startup.
+3. **Settings Customization (Einstellungen)**:
+   - Interactive forms to configure battery capacity, electricity cost, charging efficiency percentage, and wear-and-tear rate with real-time positive validation.
 
-4. **Tabbed User Interface**:
-   - Seamless swipe and click-based navigation between charging cost calculations and wear-and-tear calculations.
+4. **Persistent Inputs & Configuration**:
+   - User inputs (SOC, mileage, passengers) and custom settings configuration are saved locally on the device (via SharedPreferences) and restored on startup.
+
+5. **Tabbed User Interface**:
+   - Seamless swipe and click-based navigation between charging cost calculations, wear-and-tear calculations, and configuration settings.
