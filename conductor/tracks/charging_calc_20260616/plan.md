@@ -15,7 +15,7 @@
 - [x] Task: Implement PreferencesManager (make failing tests pass) 672817a
 - [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) ec2dd80
 
-## Phase 2: Settings Dialog (Gear Icon + Modal)
+## Phase 2: Settings Dialog (Gear Icon + Modal) [checkpoint: ca5558a]
 
 - [x] Task: Add gear icon button to TopBar (`MainActivity.kt` or top-level composable) 1ffff1e
     - [x] Add `IconButton` with `Icons.Default.Settings` to the TopAppBar
@@ -32,7 +32,7 @@
     - [x] Test read-only effective capacity updates when nominal/degradation changes
     - [x] Test validation rejects invalid inputs
 - [x] Task: Implement SettingsDialog (make tests pass) 1ffff1e
-- [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) ca5558a
 
 ## Phase 3: Ladedauer Tab - UI
 
