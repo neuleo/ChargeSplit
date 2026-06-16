@@ -66,6 +66,6 @@ class CalculatorUtilsTest {
         assertEquals(3, CalculatorUtils.TABS.size)
         assertEquals("Ladekosten", CalculatorUtils.TABS[0])
         assertEquals("Verschleiß", CalculatorUtils.TABS[1])
-        assertEquals("Einstellungen", CalculatorUtils.TABS[2])
+        assertEquals("Ladedauer", CalculatorUtils.TABS[2])
     }
 }

@@ -107,7 +107,7 @@ fun MainScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) 
             when (page) {
                 0 -> ChargeSplitScreen()
                 1 -> WearScreen()
-                2 -> SettingsScreen()
+                2 -> LadedauerScreen(prefsManager = prefsManager)
             }
         }
     }
