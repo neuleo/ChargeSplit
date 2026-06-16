@@ -1,6 +1,6 @@
 # Implementation Plan - EV Settings Customization
 
-## Phase 1: Calculation Logic Refactoring & Unit Tests (TDD)
+## Phase 1: Calculation Logic Refactoring & Unit Tests (TDD) [checkpoint: 97b3031]
 
 - [x] Task: Refactor cost calculations to a testable helper class [3aeb4ad]
     - [x] Write Tests: Create `CalculatorUtilsTest.kt` containing failing/placeholder unit tests validating charging and wear calculations.
@@ -8,7 +8,7 @@
 - [x] Task: Integrate customizable parameters into calculations [94d1c97]
     - [x] Write Tests: Add unit tests in `CalculatorUtilsTest.kt` to verify that changing battery capacity, efficiency, price, and wear cost changes calculations as expected.
     - [x] Implement Feature: Update calculation calls in `MainActivity.kt` to pass parameters fetched from `SharedPreferences`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Calculations and Unit Testing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Core Calculations and Unit Testing' (Protocol in workflow.md) [97b3031]
 
 ## Phase 2: Settings UI and Preferences Bindings
 
