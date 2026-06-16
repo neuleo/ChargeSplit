@@ -5,14 +5,14 @@
 - [x] Task: Define `VehiclePreset` data class with all fields (nominalKwh, usableKwh, maxAcKw, maxDcKw, acEfficiency, dcEfficiency) bbb654b
     - [x] Create `VehiclePreset.kt` in the model package
     - [x] Define the three presets as constants: `TESLA_S_P85`, `LEAPMOTOR_T03`, `CUSTOM`
-- [ ] Task: Extend SharedPreferences with new preference keys
-    - [ ] Add keys: `pref_vehicle_preset`, `pref_battery_nominal_kwh`, `pref_battery_degradation`, `pref_ac_efficiency`, `pref_dc_efficiency`
-    - [ ] Create/extend `PreferencesManager.kt` with typed read/write helpers for all settings
-- [ ] Task: Write unit tests for VehiclePreset data model and PreferencesManager
-    - [ ] Test preset auto-fill populates all fields correctly
-    - [ ] Test effective capacity calculation: `nominal * (1 - degradation/100)`
-    - [ ] Test persistence round-trip (write then read)
-- [ ] Task: Implement PreferencesManager (make failing tests pass)
+- [x] Task: Extend SharedPreferences with new preference keys 672817a
+    - [x] Add keys: `pref_vehicle_preset`, `pref_battery_nominal_kwh`, `pref_battery_degradation`, `pref_ac_efficiency`, `pref_dc_efficiency`
+    - [x] Create/extend `PreferencesManager.kt` with typed read/write helpers for all settings
+- [x] Task: Write unit tests for VehiclePreset data model and PreferencesManager 672817a
+    - [x] Test preset auto-fill populates all fields correctly
+    - [x] Test effective capacity calculation: `nominal * (1 - degradation/100)`
+    - [x] Test persistence round-trip (write then read)
+- [x] Task: Implement PreferencesManager (make failing tests pass) 672817a
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Settings Dialog (Gear Icon + Modal)
