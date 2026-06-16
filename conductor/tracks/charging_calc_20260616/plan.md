@@ -36,22 +36,22 @@
 
 ## Phase 3: Ladedauer Tab - UI
 
-- [ ] Task: Add "Ladedauer" tab to `HorizontalPager` tab layout in `MainActivity`
-    - [ ] Register new tab with label "Ladedauer"
-    - [ ] Create placeholder `LadedauerScreen` composable file
-- [ ] Task: Implement `LadedauerScreen` input section
-    - [ ] Start-SOC slider (0–100) + numeric input field
-    - [ ] Ziel-SOC slider (0–100) + numeric input field
-    - [ ] Start-Zeit picker (TimePickerDialog, defaulting to current time)
-    - [ ] Ladeart selector (Radio buttons or DropdownMenu):
+- [x] Task: Add "Ladedauer" tab to `HorizontalPager` tab layout in `MainActivity` 14df235
+    - [x] Register new tab with label "Ladedauer"
+    - [x] Create placeholder `LadedauerScreen` composable file
+- [x] Task: Implement `LadedauerScreen` input section 14df235
+    - [x] Start-SOC slider (0–100) + numeric input field
+    - [x] Ziel-SOC slider (0–100) + numeric input field
+    - [x] Start-Zeit picker (TimePickerDialog, defaulting to current time)
+    - [x] Ladeart selector (Radio buttons or DropdownMenu):
         - Schuko 2.3 kW
         - Wallbox AC 11 kW
         - Wallbox AC 22 kW
         - DC Schnelllader 50 kW
         - Benutzerdefiniert (custom kW text field shown when selected)
-- [ ] Task: Write UI tests for LadedauerScreen inputs
-    - [ ] Test SOC sliders enforce min/max and that Ziel ≥ Start
-    - [ ] Test custom charger field appears only when "Benutzerdefiniert" is selected
+- [x] Task: Write UI tests for LadedauerScreen inputs 14df235
+    - [x] Test SOC sliders enforce min/max and that Ziel ≥ Start
+    - [x] Test custom charger field appears only when "Benutzerdefiniert" is selected
 - [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
 
 ## Phase 4: Ladedauer Tab - Calculation Logic & Results
