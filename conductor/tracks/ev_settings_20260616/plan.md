@@ -12,9 +12,9 @@
 
 ## Phase 2: Settings UI and Preferences Bindings
 
-- [ ] Task: Implement the Settings Composable Screen
-    - [ ] Write Tests: Create tests in `SettingsScreenTest.kt` or validator unit tests verifying settings text validation (e.g. rejection of negative values or invalid floats).
-    - [ ] Implement Feature: Create `SettingsScreen` Composable with state-backed text fields and automated `SharedPreferences` saving.
+- [x] Task: Implement the Settings Composable Screen [1cc136d]
+    - [x] Write Tests: Create tests in `SettingsScreenTest.kt` or validator unit tests verifying settings text validation (e.g. rejection of negative values or invalid floats).
+    - [x] Implement Feature: Create `SettingsScreen` Composable with state-backed text fields and automated `SharedPreferences` saving.
 - [ ] Task: Integrate Settings tab into Main Pager
     - [ ] Write Tests: Create a JVM unit test or UI test checking that 3 tabs are present in the tabs list.
     - [ ] Implement Feature: Update `MainScreen` TabRow and HorizontalPager to include the "Einstellungen" tab.
