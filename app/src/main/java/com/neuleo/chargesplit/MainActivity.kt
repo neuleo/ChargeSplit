@@ -89,10 +89,10 @@ fun ChargeSplitScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("chargesplit_prefs", Context.MODE_PRIVATE)
 
-    // Fest eingetragene Variablen
-    val batteryCapacity = 70f      // in kWh
-    val costPerKWh = 0.35f         // in Euro
-    val efficiency = 0.90f         // Ladeeffizienz
+    // EV variables loaded from preferences
+    val batteryCapacity = prefs.getFloat("pref_battery_capacity", 70f)
+    val costPerKWh = prefs.getFloat("pref_cost_per_kwh", 0.35f)
+    val efficiency = prefs.getFloat("pref_efficiency", 0.90f)
 
     // Zustände für die Eingaben - mit gespeicherten Werten initialisieren
     var startSOC by remember { mutableStateOf(prefs.getFloat("startSOC", 60f)) }
@@ -220,8 +220,8 @@ fun WearScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("chargesplit_prefs", Context.MODE_PRIVATE)
 
-    // Verschleiß-Basis: 60€ für 1600km
-    val wearCostPer1600Km = 60f
+    // Wear variables loaded from preferences
+    val wearCostPer1600Km = prefs.getFloat("pref_wear_cost_per_1600", 60f)
     val baseMileage = 1600f
 
     // Zustände für die Eingaben - mit gespeicherten Werten initialisieren

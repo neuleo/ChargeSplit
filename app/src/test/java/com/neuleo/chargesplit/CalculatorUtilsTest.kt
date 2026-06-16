@@ -33,4 +33,31 @@ class CalculatorUtilsTest {
         assertEquals(6.0f, result.totalWearCost, 0.01f)
         assertEquals(3.0f, result.wearCostPerPerson, 0.01f)
     }
+
+    @Test
+    fun testCalculateChargingCostWithCustomParams() {
+        val result = CalculatorUtils.calculateChargingCost(
+            startSOC = 60f,
+            endSOC = 40f,
+            batteryCapacity = 100f,
+            efficiency = 0.80f,
+            costPerKWh = 0.50f,
+            passengers = 3
+        )
+        assertEquals(25.0f, result.requiredKWh, 0.01f)
+        assertEquals(12.50f, result.totalCost, 0.01f)
+        assertEquals(3.125f, result.costPerPerson, 0.01f)
+    }
+
+    @Test
+    fun testCalculateWearCostWithCustomParams() {
+        val result = CalculatorUtils.calculateWearCost(
+            kilometers = 3200f,
+            wearCostPer1600Km = 80f,
+            baseMileage = 1600f,
+            passengers = 2
+        )
+        assertEquals(160.0f, result.totalWearCost, 0.01f)
+        assertEquals(53.33f, result.wearCostPerPerson, 0.01f)
+    }
 }
