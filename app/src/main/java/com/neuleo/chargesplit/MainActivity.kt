@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
-    val tabs = listOf("Ladekosten", "Verschleiß")
+    val tabs = CalculatorUtils.TABS
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -81,6 +81,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
             when (page) {
                 0 -> ChargeSplitScreen()
                 1 -> WearScreen()
+                2 -> SettingsScreen()
             }
         }
     }

@@ -60,4 +60,12 @@ class CalculatorUtilsTest {
         assertEquals(160.0f, result.totalWearCost, 0.01f)
         assertEquals(53.33f, result.wearCostPerPerson, 0.01f)
     }
+
+    @Test
+    fun testTabListSize() {
+        assertEquals(3, CalculatorUtils.TABS.size)
+        assertEquals("Ladekosten", CalculatorUtils.TABS[0])
+        assertEquals("Verschleiß", CalculatorUtils.TABS[1])
+        assertEquals("Einstellungen", CalculatorUtils.TABS[2])
+    }
 }

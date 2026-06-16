@@ -1,6 +1,8 @@
 package com.neuleo.chargesplit
 
 object CalculatorUtils {
+    val TABS = listOf("Ladekosten", "Verschleiß", "Einstellungen")
+
     data class ChargingCostResult(
         val requiredKWh: Float,
         val totalCost: Float,
