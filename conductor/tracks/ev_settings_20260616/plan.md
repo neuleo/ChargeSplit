@@ -10,7 +10,7 @@
     - [x] Implement Feature: Update calculation calls in `MainActivity.kt` to pass parameters fetched from `SharedPreferences`.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Core Calculations and Unit Testing' (Protocol in workflow.md) [97b3031]
 
-## Phase 2: Settings UI and Preferences Bindings
+## Phase 2: Settings UI and Preferences Bindings [checkpoint: a560c3d]
 
 - [x] Task: Implement the Settings Composable Screen [1cc136d]
     - [x] Write Tests: Create tests in `SettingsScreenTest.kt` or validator unit tests verifying settings text validation (e.g. rejection of negative values or invalid floats).
@@ -18,4 +18,4 @@
 - [x] Task: Integrate Settings tab into Main Pager [f05e83a]
     - [x] Write Tests: Create a JVM unit test or UI test checking that 3 tabs are present in the tabs list.
     - [x] Implement Feature: Update `MainScreen` TabRow and HorizontalPager to include the "Einstellungen" tab.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: UI Integration and Settings Persistence' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: UI Integration and Settings Persistence' (Protocol in workflow.md) [a560c3d]
