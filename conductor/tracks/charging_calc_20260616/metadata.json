@@ -1,0 +1,8 @@
+{
+  "track_id": "charging_calc_20260616",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-06-16T09:37:00Z",
+  "updated_at": "2026-06-16T09:37:00Z",
+  "description": "Vehicle Presets & Charging Time Calculator: Fahrzeug-Presets (Tesla S P85, Leapmotor T03, Custom) mit Degradation und ein neuer Ladedauer-Rechner Tab"
+}
