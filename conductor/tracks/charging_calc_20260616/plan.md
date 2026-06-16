@@ -2,9 +2,9 @@
 
 ## Phase 1: Vehicle Preset Data Model & Settings Infrastructure
 
-- [ ] Task: Define `VehiclePreset` data class with all fields (nominalKwh, usableKwh, maxAcKw, maxDcKw, acEfficiency, dcEfficiency)
-    - [ ] Create `VehiclePreset.kt` in the model package
-    - [ ] Define the three presets as constants: `TESLA_S_P85`, `LEAPMOTOR_T03`, `CUSTOM`
+- [x] Task: Define `VehiclePreset` data class with all fields (nominalKwh, usableKwh, maxAcKw, maxDcKw, acEfficiency, dcEfficiency) bbb654b
+    - [x] Create `VehiclePreset.kt` in the model package
+    - [x] Define the three presets as constants: `TESLA_S_P85`, `LEAPMOTOR_T03`, `CUSTOM`
 - [ ] Task: Extend SharedPreferences with new preference keys
     - [ ] Add keys: `pref_vehicle_preset`, `pref_battery_nominal_kwh`, `pref_battery_degradation`, `pref_ac_efficiency`, `pref_dc_efficiency`
     - [ ] Create/extend `PreferencesManager.kt` with typed read/write helpers for all settings
