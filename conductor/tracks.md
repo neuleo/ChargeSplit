@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Vehicle Presets & Charging Time Calculator**
+- [~] **Track: Vehicle Presets & Charging Time Calculator**
 *Link: [./tracks/charging_calc_20260616/](./tracks/charging_calc_20260616/)*
