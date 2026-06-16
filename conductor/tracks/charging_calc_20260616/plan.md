@@ -17,21 +17,21 @@
 
 ## Phase 2: Settings Dialog (Gear Icon + Modal)
 
-- [ ] Task: Add gear icon button to TopBar (`MainActivity.kt` or top-level composable)
-    - [ ] Add `IconButton` with `Icons.Default.Settings` to the TopAppBar
-    - [ ] Wire button to toggle a `showSettingsDialog` state
-- [ ] Task: Build `SettingsDialog` composable
-    - [ ] Vehicle preset selector (segmented or dropdown: Tesla S P85 / Leapmotor T03 / Custom)
-    - [ ] Auto-fill all fields when preset changes
-    - [ ] Fields: Nominale Kapazität, Degradation %, Effective Kapazität (read-only, auto-calc), Strompreis, AC Effizienz, DC Effizienz
-    - [ ] Validation: positive numbers only, degradation 0–100, efficiencies 50–100
-    - [ ] Save button persists all values to SharedPreferences
-    - [ ] Cancel/dismiss discards unsaved changes
-- [ ] Task: Write tests for SettingsDialog composable
-    - [ ] Test preset selection triggers correct auto-fill
-    - [ ] Test read-only effective capacity updates when nominal/degradation changes
-    - [ ] Test validation rejects invalid inputs
-- [ ] Task: Implement SettingsDialog (make tests pass)
+- [x] Task: Add gear icon button to TopBar (`MainActivity.kt` or top-level composable) 1ffff1e
+    - [x] Add `IconButton` with `Icons.Default.Settings` to the TopAppBar
+    - [x] Wire button to toggle a `showSettingsDialog` state
+- [x] Task: Build `SettingsDialog` composable 1ffff1e
+    - [x] Vehicle preset selector (segmented or dropdown: Tesla S P85 / Leapmotor T03 / Custom)
+    - [x] Auto-fill all fields when preset changes
+    - [x] Fields: Nominale Kapazität, Degradation %, Effective Kapazität (read-only, auto-calc), Strompreis, AC Effizienz, DC Effizienz
+    - [x] Validation: positive numbers only, degradation 0–100, efficiencies 50–100
+    - [x] Save button persists all values to SharedPreferences
+    - [x] Cancel/dismiss discards unsaved changes
+- [x] Task: Write tests for SettingsDialog composable 1ffff1e
+    - [x] Test preset selection triggers correct auto-fill
+    - [x] Test read-only effective capacity updates when nominal/degradation changes
+    - [x] Test validation rejects invalid inputs
+- [x] Task: Implement SettingsDialog (make tests pass) 1ffff1e
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Ladedauer Tab - UI
