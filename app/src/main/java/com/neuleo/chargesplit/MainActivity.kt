@@ -191,14 +191,17 @@ fun ChargeSplitScreen(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                val deltaSOC = (startSOC - endSOC).coerceAtLeast(0f)
-                val requiredKWh = (deltaSOC / 100f * batteryCapacity) / efficiency
-                val totalCost = requiredKWh * costPerKWh
-                val numPeople = passengers + 1
-                val costPerPerson = totalCost / numPeople
+                val result = CalculatorUtils.calculateChargingCost(
+                    startSOC = startSOC,
+                    endSOC = endSOC,
+                    batteryCapacity = batteryCapacity,
+                    efficiency = efficiency,
+                    costPerKWh = costPerKWh,
+                    passengers = passengers
+                )
 
                 resultText = "Nachladen: %.2f kWh\nGesamtkosten: €%.2f\nKosten pro Person: €%.2f"
-                    .format(requiredKWh, totalCost, costPerPerson)
+                    .format(result.requiredKWh, result.totalCost, result.costPerPerson)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -279,13 +282,15 @@ fun WearScreen(modifier: Modifier = Modifier) {
             onClick = {
                 val km = kilometers.toFloatOrNull()
                 if (km != null && km > 0) {
-                    // Verschleißkosten berechnen: (gefahrene_km / 1600km) * 60€
-                    val totalWearCost = (km / baseMileage) * wearCostPer1600Km
-                    val numPeople = wearPassengers + 1
-                    val wearCostPerPerson = totalWearCost / numPeople
+                    val result = CalculatorUtils.calculateWearCost(
+                        kilometers = km,
+                        wearCostPer1600Km = wearCostPer1600Km,
+                        baseMileage = baseMileage,
+                        passengers = wearPassengers
+                    )
 
                     wearResultText = "Gesamtverschleiß: €%.2f\nKosten pro Person: €%.2f"
-                        .format(totalWearCost, wearCostPerPerson)
+                        .format(result.totalWearCost, result.wearCostPerPerson)
                 } else {
                     wearResultText = "Bitte geben Sie gültige Kilometer ein"
                 }
