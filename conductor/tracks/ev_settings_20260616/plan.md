@@ -2,9 +2,9 @@
 
 ## Phase 1: Calculation Logic Refactoring & Unit Tests (TDD)
 
-- [ ] Task: Refactor cost calculations to a testable helper class
-    - [ ] Write Tests: Create `CalculatorUtilsTest.kt` containing failing/placeholder unit tests validating charging and wear calculations.
-    - [ ] Implement Feature: Create `CalculatorUtils.kt` with pure calculation functions and refactor `MainActivity.kt` screens to use them.
+- [x] Task: Refactor cost calculations to a testable helper class [3aeb4ad]
+    - [x] Write Tests: Create `CalculatorUtilsTest.kt` containing failing/placeholder unit tests validating charging and wear calculations.
+    - [x] Implement Feature: Create `CalculatorUtils.kt` with pure calculation functions and refactor `MainActivity.kt` screens to use them.
 - [ ] Task: Integrate customizable parameters into calculations
     - [ ] Write Tests: Add unit tests in `CalculatorUtilsTest.kt` to verify that changing battery capacity, efficiency, price, and wear cost changes calculations as expected.
     - [ ] Implement Feature: Update calculation calls in `MainActivity.kt` to pass parameters fetched from `SharedPreferences`.
