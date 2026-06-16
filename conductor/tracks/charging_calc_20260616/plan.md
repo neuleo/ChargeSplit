@@ -1,6 +1,6 @@
 # Plan: Vehicle Presets & Charging Time Calculator
 
-## Phase 1: Vehicle Preset Data Model & Settings Infrastructure
+## Phase 1: Vehicle Preset Data Model & Settings Infrastructure [checkpoint: ec2dd80]
 
 - [x] Task: Define `VehiclePreset` data class with all fields (nominalKwh, usableKwh, maxAcKw, maxDcKw, acEfficiency, dcEfficiency) bbb654b
     - [x] Create `VehiclePreset.kt` in the model package
@@ -13,7 +13,7 @@
     - [x] Test effective capacity calculation: `nominal * (1 - degradation/100)`
     - [x] Test persistence round-trip (write then read)
 - [x] Task: Implement PreferencesManager (make failing tests pass) 672817a
-- [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) ec2dd80
 
 ## Phase 2: Settings Dialog (Gear Icon + Modal)
 
