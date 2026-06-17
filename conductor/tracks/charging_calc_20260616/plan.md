@@ -56,19 +56,19 @@
 
 ## Phase 4: Ladedauer Tab - Calculation Logic & Results
 
-- [ ] Task: Implement `ChargingCalculator` utility object / class
-    - [ ] Function `calculateChargingDuration(startSoc, targetSoc, chargerKw, vehiclePreset, electricityPrice): ChargingResult`
-    - [ ] Apply vehicle max AC/DC cap: `effectiveChargerKw = min(chargerKw, vehicleMax)`
-    - [ ] Use appropriate efficiency (AC or DC) based on charger type
-    - [ ] Return: `durationMinutes`, `gridEnergyKwh`, `totalCostEur`, `estimatedEndTime`
-- [ ] Task: Write unit tests for `ChargingCalculator`
-    - [ ] Test Tesla S P85: 20%→80% via Wallbox 11kW → expected ~4h 3min, correct cost
-    - [ ] Test Leapmotor T03: 10%→90% via DC 50kW (capped at 48kW) → expected ~37min
-    - [ ] Test power capping: 22kW AC on Leapmotor T03 (max 6.6kW) → uses 6.6kW, shows info note
-    - [ ] Test Schuko 2.3kW base case
-    - [ ] Test custom kW input
-- [ ] Task: Implement `ChargingCalculator` (make tests pass)
-- [ ] Task: Wire calculation to `LadedauerScreen`
+- [x] Task: Implement `ChargingCalculator` utility object / class fd466cc
+    - [x] Function `calculateChargingDuration(startSoc, targetSoc, chargerKw, vehiclePreset, electricityPrice): ChargingResult`
+    - [x] Apply vehicle max AC/DC cap: `effectiveChargerKw = min(chargerKw, vehicleMax)`
+    - [x] Use appropriate efficiency (AC or DC) based on charger type
+    - [x] Return: `durationMinutes`, `gridEnergyKwh`, `totalCostEur`, `estimatedEndTime`
+- [x] Task: Write unit tests for `ChargingCalculator` fd466cc
+    - [x] Test Tesla S P85: 20%→80% via Wallbox 11kW → expected ~4h 3min, correct cost
+    - [x] Test Leapmotor T03: 10%→90% via DC 50kW (capped at 48kW) → expected ~37min
+    - [x] Test power capping: 22kW AC on Leapmotor T03 (max 6.6kW) → uses 6.6kW, shows info note
+    - [x] Test Schuko 2.3kW base case
+    - [x] Test custom kW input
+- [x] Task: Implement `ChargingCalculator` (make tests pass) fd466cc
+- [~] Task: Wire calculation to `LadedauerScreen`
     - [ ] Read current vehicle settings from PreferencesManager
     - [ ] Display results: Ladedauer, Energie, Kosten, Startzeit, Fertigzeit
     - [ ] Show capping info note when applicable
