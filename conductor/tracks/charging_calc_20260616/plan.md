@@ -74,7 +74,7 @@
     - [x] Show capping info note when applicable
 - [x] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md) c58c911
 
-## Phase 5: Integration, Refinement & Cleanup
+## Phase 5: Integration, Refinement & Cleanup [checkpoint: 4bb089a]
 
 - [x] Task: Integrate new settings (preset, degradation) into existing `ChargeSplitScreen` calculation 80ec17e
     - [x] Replace hardcoded battery capacity with `effectiveCapacity` from PreferencesManager
@@ -83,4 +83,4 @@
     - [x] Run `./gradlew lint` and fix all warnings
 - [x] Task: Full test suite run 80ec17e
     - [x] Run `./gradlew test` — all tests must pass
-- [ ] Task: Conductor - User Manual Verification 'Phase 5' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5' (Protocol in workflow.md) 4bb089a
