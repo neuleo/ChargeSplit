@@ -7,13 +7,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.neuleo.chargesplit.model.VehiclePreset
 import java.util.Calendar
 import java.util.Locale
 
@@ -58,6 +61,59 @@ fun LadedauerScreen(
     var customChargerKwText by remember { mutableStateOf("22.0") }
     var expanded by remember { mutableStateOf(false) }
 
+    // Resolve vehicle preset and custom settings
+    val activePreset = remember(prefsManager.vehiclePresetId, prefsManager.batteryNominalKwh, prefsManager.acEfficiency, prefsManager.dcEfficiency) {
+        if (prefsManager.vehiclePresetId == "custom") {
+            VehiclePreset(
+                id = "custom",
+                name = "Custom",
+                nominalKwh = prefsManager.batteryNominalKwh,
+                usableKwh = prefsManager.batteryNominalKwh,
+                maxAcKw = 22.0f,
+                maxDcKw = 150.0f,
+                acEfficiency = prefsManager.acEfficiency,
+                dcEfficiency = prefsManager.dcEfficiency
+            )
+        } else {
+            VehiclePreset.fromId(prefsManager.vehiclePresetId)
+        }
+    }
+
+    // Determine charger Kw and type
+    val chargerKw = when (chargerType) {
+        "Schuko (2.3 kW)" -> 2.3f
+        "Wallbox AC 11 kW" -> 11.0f
+        "Wallbox AC 22 kW" -> 22.0f
+        "DC Schnelllader 50 kW" -> 50.0f
+        else -> customChargerKwText.toFloatOrNull() ?: 0f
+    }
+    val isAc = chargerType != "DC Schnelllader 50 kW" && (chargerType != "Benutzerdefiniert" || chargerKw <= 22.0f)
+
+    // Run charging calculator
+    val result = remember(startSoc, targetSoc, chargerKw, isAc, activePreset, prefsManager.batteryDegradation, prefsManager.costPerKWh) {
+        ChargingCalculator.calculateChargingDuration(
+            startSoc = startSoc,
+            targetSoc = targetSoc,
+            chargerKw = chargerKw,
+            isAc = isAc,
+            preset = activePreset,
+            degradation = prefsManager.batteryDegradation,
+            electricityPrice = prefsManager.costPerKWh
+        )
+    }
+
+    // End time calculation
+    val endTime = remember(startTime, result.durationMinutes) {
+        (startTime.clone() as Calendar).apply {
+            add(Calendar.MINUTE, result.durationMinutes.toInt())
+        }
+    }
+    val formattedEndTime = String.format(Locale.US, "%02d:%02d", endTime.get(Calendar.HOUR_OF_DAY), endTime.get(Calendar.MINUTE))
+
+    val hours = result.durationMinutes.toInt() / 60
+    val minutes = result.durationMinutes.toInt() % 60
+    val durationStr = "${hours}h ${minutes}min"
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -65,11 +121,34 @@ fun LadedauerScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(text = "Ladedauer-Rechner", style = MaterialTheme.typography.headlineMedium)
+        Text(text = "Ladedauer-Rechner", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+
+        // Vehicle info preview card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Aktives Fahrzeug: ${activePreset.name}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = "Kapazität: ${activePreset.nominalKwh} kWh | Degradation: ${prefsManager.batteryDegradation}% | Strompreis: ${String.format(Locale.US, "%.2f", prefsManager.costPerKWh)} €/kWh",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                )
+            }
+        }
 
         // Start-SOC
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(text = "Start-SOC: ${startSoc.toInt()}%", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "Start-SOC: ${startSoc.toInt()}%", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -96,7 +175,7 @@ fun LadedauerScreen(
 
         // Ziel-SOC
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(text = "Ziel-SOC: ${targetSoc.toInt()}%", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "Ziel-SOC: ${targetSoc.toInt()}%", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -126,7 +205,7 @@ fun LadedauerScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(text = "Startzeit: $formattedTime", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "Startzeit: $formattedTime", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
             Button(onClick = { timePickerDialog.show() }) {
                 Text("Zeit wählen")
             }
@@ -172,17 +251,91 @@ fun LadedauerScreen(
             )
         }
 
-        // Placeholder for Results section (Phase 4)
-        Spacer(modifier = Modifier.height(16.dp))
+        // Capping Info Note
+        if (result.isCapped) {
+            val maxRate = if (isAc) activePreset.maxAcKw else activePreset.maxDcKw
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "Begrenzung",
+                        tint = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                    Text(
+                        text = "Begrenzung: Die Ladeleistung wird durch das Fahrzeug auf $maxRate kW begrenzt (Ladegerät liefert $chargerKw kW).",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
+        }
+
+        // Calculation Results Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(text = "Berechnungsergebnisse (wird in Phase 4 integriert)", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "Berechnungsergebnisse",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                
+                Divider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = "Ladedauer:", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(text = durationStr, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = "Energie (Netz):", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(
+                        text = String.format(Locale.US, "%.1f kWh", result.gridEnergyKwh),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = "Ladekosten:", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(
+                        text = String.format(Locale.GERMANY, "%.2f €", result.totalCostEur),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = "Geschätzte Fertigzeit:", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(text = formattedEndTime, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
             }
         }
     }
