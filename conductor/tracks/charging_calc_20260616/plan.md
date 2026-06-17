@@ -76,10 +76,10 @@
 
 ## Phase 5: Integration, Refinement & Cleanup
 
-- [ ] Task: Integrate new settings (preset, degradation) into existing `ChargeSplitScreen` calculation
-    - [ ] Replace hardcoded battery capacity with `effectiveCapacity` from PreferencesManager
-    - [ ] Replace hardcoded AC efficiency with preset's `acEfficiency`
-- [ ] Task: Lint & code style check
+- [x] Task: Integrate new settings (preset, degradation) into existing `ChargeSplitScreen` calculation 80ec17e
+    - [x] Replace hardcoded battery capacity with `effectiveCapacity` from PreferencesManager
+    - [x] Replace hardcoded AC efficiency with preset's `acEfficiency`
+- [~] Task: Lint & code style check
     - [ ] Run `./gradlew lint` and fix all warnings
 - [ ] Task: Full test suite run
     - [ ] Run `./gradlew test` — all tests must pass
