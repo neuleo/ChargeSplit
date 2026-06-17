@@ -81,6 +81,6 @@
     - [x] Replace hardcoded AC efficiency with preset's `acEfficiency`
 - [x] Task: Lint & code style check 80ec17e
     - [x] Run `./gradlew lint` and fix all warnings
-- [~] Task: Full test suite run
-    - [ ] Run `./gradlew test` — all tests must pass
+- [x] Task: Full test suite run 80ec17e
+    - [x] Run `./gradlew test` — all tests must pass
 - [ ] Task: Conductor - User Manual Verification 'Phase 5' (Protocol in workflow.md)
