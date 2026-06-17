@@ -105,8 +105,8 @@ fun MainScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) 
             modifier = Modifier.fillMaxSize()
         ) { page ->
             when (page) {
-                0 -> ChargeSplitScreen()
-                1 -> WearScreen()
+                0 -> ChargeSplitScreen(prefsManager = prefsManager)
+                1 -> WearScreen(prefsManager = prefsManager)
                 2 -> LadedauerScreen(prefsManager = prefsManager)
             }
         }
@@ -114,14 +114,32 @@ fun MainScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) 
 }
 
 @Composable
-fun ChargeSplitScreen(modifier: Modifier = Modifier) {
+fun ChargeSplitScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("chargesplit_prefs", Context.MODE_PRIVATE)
 
-    // EV variables loaded from preferences
-    val batteryCapacity = prefs.getFloat("pref_battery_capacity", 70f)
-    val costPerKWh = prefs.getFloat("pref_cost_per_kwh", 0.35f)
-    val efficiency = prefs.getFloat("pref_efficiency", 0.90f)
+    // Resolve vehicle preset and custom settings
+    val activePreset = remember(prefsManager.vehiclePresetId, prefsManager.batteryNominalKwh, prefsManager.acEfficiency, prefsManager.dcEfficiency) {
+        if (prefsManager.vehiclePresetId == "custom") {
+            com.neuleo.chargesplit.model.VehiclePreset(
+                id = "custom",
+                name = "Custom",
+                nominalKwh = prefsManager.batteryNominalKwh,
+                usableKwh = prefsManager.batteryNominalKwh,
+                maxAcKw = 22.0f,
+                maxDcKw = 150.0f,
+                acEfficiency = prefsManager.acEfficiency,
+                dcEfficiency = prefsManager.dcEfficiency
+            )
+        } else {
+            com.neuleo.chargesplit.model.VehiclePreset.fromId(prefsManager.vehiclePresetId)
+        }
+    }
+
+    // EV variables loaded from preferences manager
+    val batteryCapacity = prefsManager.effectiveCapacity
+    val costPerKWh = prefsManager.costPerKWh
+    val efficiency = activePreset.acEfficiency
 
     // Zustände für die Eingaben - mit gespeicherten Werten initialisieren
     var startSOC by remember { mutableStateOf(prefs.getFloat("startSOC", 60f)) }
@@ -245,12 +263,12 @@ fun ChargeSplitScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun WearScreen(modifier: Modifier = Modifier) {
+fun WearScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("chargesplit_prefs", Context.MODE_PRIVATE)
 
-    // Wear variables loaded from preferences
-    val wearCostPer1600Km = prefs.getFloat("pref_wear_cost_per_1600", 60f)
+    // Wear variables loaded from preferences manager
+    val wearCostPer1600Km = prefsManager.wearCostPer1600
     val baseMileage = 1600f
 
     // Zustände für die Eingaben - mit gespeicherten Werten initialisieren
