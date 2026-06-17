@@ -54,7 +54,7 @@
     - [x] Test custom charger field appears only when "Benutzerdefiniert" is selected
 - [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md) 793406d
 
-## Phase 4: Ladedauer Tab - Calculation Logic & Results
+## Phase 4: Ladedauer Tab - Calculation Logic & Results [checkpoint: c58c911]
 
 - [x] Task: Implement `ChargingCalculator` utility object / class fd466cc
     - [x] Function `calculateChargingDuration(startSoc, targetSoc, chargerKw, vehiclePreset, electricityPrice): ChargingResult`
@@ -72,7 +72,7 @@
     - [x] Read current vehicle settings from PreferencesManager
     - [x] Display results: Ladedauer, Energie, Kosten, Startzeit, Fertigzeit
     - [x] Show capping info note when applicable
-- [ ] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md) c58c911
 
 ## Phase 5: Integration, Refinement & Cleanup
 
