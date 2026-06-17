@@ -34,7 +34,7 @@
 - [x] Task: Implement SettingsDialog (make tests pass) 1ffff1e
 - [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) ca5558a
 
-## Phase 3: Ladedauer Tab - UI
+## Phase 3: Ladedauer Tab - UI [checkpoint: 793406d]
 
 - [x] Task: Add "Ladedauer" tab to `HorizontalPager` tab layout in `MainActivity` 14df235
     - [x] Register new tab with label "Ladedauer"
@@ -52,7 +52,7 @@
 - [x] Task: Write UI tests for LadedauerScreen inputs 14df235
     - [x] Test SOC sliders enforce min/max and that Ziel ≥ Start
     - [x] Test custom charger field appears only when "Benutzerdefiniert" is selected
-- [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md) 793406d
 
 ## Phase 4: Ladedauer Tab - Calculation Logic & Results
 
