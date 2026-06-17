@@ -68,10 +68,10 @@
     - [x] Test Schuko 2.3kW base case
     - [x] Test custom kW input
 - [x] Task: Implement `ChargingCalculator` (make tests pass) fd466cc
-- [~] Task: Wire calculation to `LadedauerScreen`
-    - [ ] Read current vehicle settings from PreferencesManager
-    - [ ] Display results: Ladedauer, Energie, Kosten, Startzeit, Fertigzeit
-    - [ ] Show capping info note when applicable
+- [x] Task: Wire calculation to `LadedauerScreen` c2dada1
+    - [x] Read current vehicle settings from PreferencesManager
+    - [x] Display results: Ladedauer, Energie, Kosten, Startzeit, Fertigzeit
+    - [x] Show capping info note when applicable
 - [ ] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
 
 ## Phase 5: Integration, Refinement & Cleanup
