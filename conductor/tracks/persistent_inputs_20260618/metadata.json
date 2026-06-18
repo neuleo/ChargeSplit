@@ -1,0 +1,8 @@
+{
+  "track_id": "persistent_inputs_20260618",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-06-18T12:59:00Z",
+  "updated_at": "2026-06-18T12:59:00Z",
+  "description": "Daten die eingegeben werden, sollen alle zwischengespeichert werden, selbst wenn app geschlossen wird"
+}
