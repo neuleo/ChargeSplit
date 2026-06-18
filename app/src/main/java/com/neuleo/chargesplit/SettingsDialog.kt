@@ -76,11 +76,9 @@ fun SettingsDialog(
                                 onClick = {
                                     selectedPreset = preset
                                     expanded = false
-                                    if (preset != VehiclePreset.CUSTOM) {
-                                        nominalText = preset.nominalKwh.toString()
-                                        acEffText = (preset.acEfficiency * 100f).toInt().toString()
-                                        dcEffText = (preset.dcEfficiency * 100f).toInt().toString()
-                                    }
+                                    nominalText = prefsManager.getBatteryNominalKwhForPreset(preset.id).toString()
+                                    acEffText = (prefsManager.getAcEfficiencyForPreset(preset.id) * 100f).toInt().toString()
+                                    dcEffText = (prefsManager.getDcEfficiencyForPreset(preset.id) * 100f).toInt().toString()
                                 }
                             )
                         }
@@ -92,7 +90,6 @@ fun SettingsDialog(
                     value = nominalText,
                     onValueChange = {
                         nominalText = it
-                        selectedPreset = VehiclePreset.CUSTOM
                     },
                     label = { Text("Nominale Batteriekapazität (kWh)") },
                     isError = !isBatteryValid,
@@ -149,7 +146,6 @@ fun SettingsDialog(
                     value = acEffText,
                     onValueChange = {
                         acEffText = it
-                        selectedPreset = VehiclePreset.CUSTOM
                     },
                     label = { Text("AC Ladeeffizienz (%)") },
                     isError = !isAcValid,
@@ -167,7 +163,6 @@ fun SettingsDialog(
                     value = dcEffText,
                     onValueChange = {
                         dcEffText = it
-                        selectedPreset = VehiclePreset.CUSTOM
                     },
                     label = { Text("DC Ladeeffizienz (%)") },
                     isError = !isDcValid,
