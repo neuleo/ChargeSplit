@@ -30,6 +30,9 @@ fun LadedauerScreen(
     val context = LocalContext.current
     var startSoc by remember { mutableStateOf(20f) }
     var targetSoc by remember { mutableStateOf(80f) }
+    var showCalibrationDialog by remember { mutableStateOf(false) }
+    var calibrationResultEfficiency by remember { mutableStateOf<Float?>(null) }
+    var calibratedChargerType by remember { mutableStateOf("") }
     
     var startTime by remember { mutableStateOf(Calendar.getInstance()) }
     val formattedTime = String.format(Locale.US, "%02d:%02d", startTime.get(Calendar.HOUR_OF_DAY), startTime.get(Calendar.MINUTE))
@@ -399,5 +402,227 @@ fun LadedauerScreen(
                 }
             }
         }
+
+        // Button for Calibration Wizard
+        Button(
+            onClick = { showCalibrationDialog = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Ladevorgang kalibrieren")
+        }
+    }
+
+    if (showCalibrationDialog) {
+        CalibrationDialog(
+            prefsManager = prefsManager,
+            initialChargerType = chargerType,
+            initialStartSoc = startSoc,
+            initialTargetSoc = targetSoc,
+            onDismiss = { showCalibrationDialog = false },
+            onCalibrated = { eff, type ->
+                calibrationResultEfficiency = eff
+                calibratedChargerType = type
+                showCalibrationDialog = false
+            }
+        )
+    }
+
+    if (calibrationResultEfficiency != null) {
+        AlertDialog(
+            onDismissRequest = { calibrationResultEfficiency = null },
+            title = { Text("Kalibrierung erfolgreich") },
+            text = {
+                Text("Kalibrierte Effizienz für $calibratedChargerType: ${(calibrationResultEfficiency!! * 100f).toInt()}%")
+            },
+            confirmButton = {
+                TextButton(onClick = { calibrationResultEfficiency = null }) {
+                    Text("OK")
+                }
+            }
+        )
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CalibrationDialog(
+    prefsManager: PreferencesManager,
+    initialChargerType: String,
+    initialStartSoc: Float,
+    initialTargetSoc: Float,
+    onDismiss: () -> Unit,
+    onCalibrated: (Float, String) -> Unit
+) {
+    val chargerTypes = listOf(
+        "Schuko (2.3 kW)",
+        "Wallbox AC 11 kW",
+        "Wallbox AC 22 kW",
+        "DC Schnelllader 50 kW",
+        "Benutzerdefiniert"
+    )
+    
+    var selectedChargerType by remember { mutableStateOf(initialChargerType) }
+    var chargerDropdownExpanded by remember { mutableStateOf(false) }
+    
+    var startSocText by remember { mutableStateOf(initialStartSoc.toInt().toString()) }
+    var targetSocText by remember { mutableStateOf(initialTargetSoc.toInt().toString()) }
+    var durationHoursText by remember { mutableStateOf("") }
+    var durationMinutesText by remember { mutableStateOf("") }
+    
+    var customPowerText by remember { mutableStateOf("22.0") }
+
+    val startSocVal = startSocText.toFloatOrNull()
+    val targetSocVal = targetSocText.toFloatOrNull()
+    val hoursVal = durationHoursText.toIntOrNull()
+    val minutesVal = durationMinutesText.toIntOrNull()
+    
+    val isStartSocValid = startSocVal != null && startSocVal in 0f..100f
+    val isTargetSocValid = targetSocVal != null && targetSocVal in 0f..100f && (startSocVal == null || targetSocVal > startSocVal)
+    val isDurationValid = (hoursVal != null && hoursVal >= 0) && (minutesVal != null && minutesVal in 0..59) && (hoursVal > 0 || minutesVal > 0)
+    
+    val powerVal = when (selectedChargerType) {
+        "Schuko (2.3 kW)" -> 2.3f
+        "Wallbox AC 11 kW" -> 11.0f
+        "Wallbox AC 22 kW" -> 22.0f
+        "DC Schnelllader 50 kW" -> 50.0f
+        else -> customPowerText.toFloatOrNull() ?: 0f
+    }
+    val isPowerValid = selectedChargerType != "Benutzerdefiniert" || (customPowerText.toFloatOrNull() != null && customPowerText.toFloatOrNull()!! > 0f)
+
+    val canCalibrate = isStartSocValid && isTargetSocValid && isDurationValid && isPowerValid
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Ladevorgang kalibrieren") },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = selectedChargerType,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Ladeart") },
+                        trailingIcon = {
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable { chargerDropdownExpanded = true }
+                    )
+                    DropdownMenu(
+                        expanded = chargerDropdownExpanded,
+                        onDismissRequest = { chargerDropdownExpanded = false }
+                    ) {
+                        chargerTypes.forEach { type ->
+                            DropdownMenuItem(
+                                text = { Text(type) },
+                                onClick = {
+                                    selectedChargerType = type
+                                    chargerDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                if (selectedChargerType == "Benutzerdefiniert") {
+                    OutlinedTextField(
+                        value = customPowerText,
+                        onValueChange = { customPowerText = it },
+                        label = { Text("Ladeleistung (kW)") },
+                        isError = !isPowerValid,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = startSocText,
+                        onValueChange = { startSocText = it },
+                        label = { Text("Start-SOC (%)") },
+                        isError = !isStartSocValid,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = targetSocText,
+                        onValueChange = { targetSocText = it },
+                        label = { Text("Ziel-SOC (%)") },
+                        isError = !isTargetSocValid,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Text("Tatsächliche Ladedauer:", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = durationHoursText,
+                        onValueChange = { durationHoursText = it },
+                        label = { Text("Stunden") },
+                        isError = hoursVal == null || hoursVal < 0,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = durationMinutesText,
+                        onValueChange = { durationMinutesText = it },
+                        label = { Text("Minuten") },
+                        isError = minutesVal == null || minutesVal !in 0..59,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (canCalibrate) {
+                        val start = startSocVal!!
+                        val target = targetSocVal!!
+                        val durationHours = hoursVal!! + (minutesVal!!.toFloat() / 60f)
+                        
+                        val activeVehicleId = prefsManager.vehiclePresetId
+                        val effCap = prefsManager.effectiveCapacity
+                        
+                        val efficiency = ChargingCalculator.calculateCalibratedEfficiency(
+                            startSoc = start,
+                            targetSoc = target,
+                            actualDurationHours = durationHours,
+                            chargerPowerKw = powerVal,
+                            effectiveBatteryCapacityKwh = effCap
+                        )
+                        
+                        prefsManager.setChargerEfficiency(activeVehicleId, selectedChargerType, efficiency)
+                        onCalibrated(efficiency, selectedChargerType)
+                    }
+                },
+                enabled = canCalibrate
+            ) {
+                Text("Kalibrieren")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Abbrechen")
+            }
+        }
+    )
+}
+
