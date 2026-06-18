@@ -102,6 +102,14 @@ log "APK-Output: ${OUTPUT_APK}"
 # ── Voraussetzungen prüfen ────────────────────────────────────────────────────
 step "Voraussetzungen prüfen"
 
+if [ -z "$GITHUB_TOKEN" ]; then
+    # Try to fetch GITHUB_TOKEN from git credential helper
+    GIT_TOKEN=$(printf "protocol=https\nhost=github.com\n\n" | git credential fill 2>/dev/null | grep password | cut -d= -f2)
+    if [ -n "$GIT_TOKEN" ]; then
+        export GITHUB_TOKEN="$GIT_TOKEN"
+    fi
+fi
+
 SKIP_GH_RELEASE=false
 
 # gh CLI vorhanden?
