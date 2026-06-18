@@ -32,12 +32,43 @@ cd "$SCRIPT_DIR"
 # ── Parameter ─────────────────────────────────────────────────────────────────
 BUILD_GRADLE="app/build.gradle.kts"
 
-# Version aus build.gradle.kts lesen (Fallback auf Argument 1)
+# Version aus build.gradle.kts lesen
 GRADLE_VERSION=$(grep 'versionName' "$BUILD_GRADLE" | sed 's/.*"\(.*\)".*/\1/')
-VERSION="${1:-$GRADLE_VERSION}"
-BUILD_TYPE="${2:-debug}"  # debug oder release
+BASE_VERSION="${1:-$GRADLE_VERSION}"
+
+# Vorhandene Tags abfragen
+if git remote | grep -q 'origin'; then
+    EXISTING_TAGS=$(git ls-remote --tags origin | awk -F'/' '{print $3}' | grep -v '\^{}' || true)
+else
+    EXISTING_TAGS=$(git tag || true)
+fi
+
+VERSION=$BASE_VERSION
+while echo "$EXISTING_TAGS" | grep -q "^v${VERSION}$"; do
+    IFS='.' read -r major minor patch <<< "$VERSION"
+    patch=$((patch + 1))
+    VERSION="${major}.${minor}.${patch}"
+done
 
 TAG="v${VERSION}"
+BUILD_TYPE="${2:-debug}"  # debug oder release
+
+# Falls sich die Version geändert hat, in build.gradle.kts anpassen und committen
+if [ "$VERSION" != "$GRADLE_VERSION" ]; then
+    echo -e "${YELLOW}[INFO]${NC} Aktualisiere $BUILD_GRADLE von $GRADLE_VERSION auf $VERSION..."
+    sed -i 's/versionName = "[^"]*"/versionName = "'"$VERSION"'"/' "$BUILD_GRADLE"
+    
+    GRADLE_CODE=$(grep 'versionCode' "$BUILD_GRADLE" | sed 's/[^0-9]//g')
+    if [ -n "$GRADLE_CODE" ]; then
+        NEW_CODE=$((GRADLE_CODE + 1))
+        sed -i 's/versionCode = [0-9]*/versionCode = '"$NEW_CODE"'/' "$BUILD_GRADLE"
+        echo -e "${YELLOW}[INFO]${NC} versionCode auf $NEW_CODE aktualisiert."
+    fi
+    
+    git add "$BUILD_GRADLE"
+    git commit -m "chore(release): Bump version to $VERSION"
+    git push origin master || true
+fi
 
 # APK Pfad je nach Build-Typ
 if [ "$BUILD_TYPE" = "release" ]; then
