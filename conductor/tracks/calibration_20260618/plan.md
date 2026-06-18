@@ -10,9 +10,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Preset Overrides and Charger-Specific Efficiency Storage' (Protocol in workflow.md) [8b2a0f0]
 
 ## Phase 2: Calibration Calculation Logic
-- [ ] Task: Implement Calibration Formula (TDD)
-    - [ ] Write unit tests in `ChargingCalculatorTest.kt` verifying that the calibration formula correctly calculates efficiency based on start SOC, target SOC, charger power, and actual duration.
-    - [ ] Implement `ChargingCalculator.calculateCalibratedEfficiency` logic.
+- [x] Task: Implement Calibration Formula (TDD) [27a3b12]
+    - [x] Write unit tests in `ChargingCalculatorTest.kt` verifying that the calibration formula correctly calculates efficiency based on start SOC, target SOC, charger power, and actual duration.
+    - [x] Implement `ChargingCalculator.calculateCalibratedEfficiency` logic.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Calibration Calculation Logic' (Protocol in workflow.md)
 
 ## Phase 3: UI Integration and Wiring
