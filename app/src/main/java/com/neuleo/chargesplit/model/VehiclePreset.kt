@@ -16,7 +16,7 @@ data class VehiclePreset(
             name = "Tesla Model S P85",
             nominalKwh = 85.0f,
             usableKwh = 80.8f,
-            maxAcKw = 11.0f,
+            maxAcKw = 22.0f,
             maxDcKw = 120.0f,
             acEfficiency = 0.91f,
             dcEfficiency = 0.93f

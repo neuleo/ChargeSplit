@@ -2,6 +2,7 @@ package com.neuleo.chargesplit
 
 import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
@@ -61,6 +62,21 @@ fun LadedauerScreen(
     var customChargerKwText by remember { mutableStateOf("22.0") }
     var expanded by remember { mutableStateOf(false) }
 
+    var priceText by remember { mutableStateOf(prefsManager.costPerKWh.toString()) }
+    var priceError by remember { mutableStateOf(false) }
+
+    val electricityPrice = remember(priceText) {
+        val parsed = priceText.toFloatOrNull()
+        if (parsed != null && parsed >= 0f) {
+            prefsManager.costPerKWh = parsed
+            priceError = false
+            parsed
+        } else {
+            priceError = true
+            prefsManager.costPerKWh
+        }
+    }
+
     // Resolve vehicle preset and custom settings
     val activePreset = remember(prefsManager.vehiclePresetId, prefsManager.batteryNominalKwh, prefsManager.acEfficiency, prefsManager.dcEfficiency) {
         if (prefsManager.vehiclePresetId == "custom") {
@@ -90,7 +106,7 @@ fun LadedauerScreen(
     val isAc = chargerType != "DC Schnelllader 50 kW" && (chargerType != "Benutzerdefiniert" || chargerKw <= 22.0f)
 
     // Run charging calculator
-    val result = remember(startSoc, targetSoc, chargerKw, isAc, activePreset, prefsManager.batteryDegradation, prefsManager.costPerKWh) {
+    val result = remember(startSoc, targetSoc, chargerKw, isAc, activePreset, prefsManager.batteryDegradation, electricityPrice) {
         ChargingCalculator.calculateChargingDuration(
             startSoc = startSoc,
             targetSoc = targetSoc,
@@ -98,7 +114,7 @@ fun LadedauerScreen(
             isAc = isAc,
             preset = activePreset,
             degradation = prefsManager.batteryDegradation,
-            electricityPrice = prefsManager.costPerKWh
+            electricityPrice = electricityPrice
         )
     }
 
@@ -139,7 +155,7 @@ fun LadedauerScreen(
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 Text(
-                    text = "Kapazität: ${activePreset.nominalKwh} kWh | Degradation: ${prefsManager.batteryDegradation}% | Strompreis: ${String.format(Locale.US, "%.2f", prefsManager.costPerKWh)} €/kWh",
+                    text = "Kapazität: ${activePreset.nominalKwh} kWh | Degradation: ${prefsManager.batteryDegradation}% | Strompreis: ${String.format(Locale.US, "%.2f", electricityPrice)} €/kWh",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
                 )
@@ -219,11 +235,15 @@ fun LadedauerScreen(
                 readOnly = true,
                 label = { Text("Ladeart") },
                 trailingIcon = {
-                    IconButton(onClick = { expanded = true }) {
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
-                    }
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
                 },
                 modifier = Modifier.fillMaxWidth()
+            )
+            // Click overlay to capture clicks anywhere on the field
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable { expanded = true }
             )
             DropdownMenu(
                 expanded = expanded,
@@ -241,11 +261,44 @@ fun LadedauerScreen(
             }
         }
 
+        // Ladeleistung (falls Custom) & Strompreis Eingabe
         if (LadedauerValidator.shouldShowCustomCharger(chargerType)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                OutlinedTextField(
+                    value = customChargerKwText,
+                    onValueChange = { customChargerKwText = it },
+                    label = { Text("Ladeleistung (kW)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedTextField(
+                    value = priceText,
+                    onValueChange = { priceText = it },
+                    label = { Text("Strompreis (€/kWh)") },
+                    isError = priceError,
+                    supportingText = {
+                        if (priceError) {
+                            Text("Ungültig")
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        } else {
             OutlinedTextField(
-                value = customChargerKwText,
-                onValueChange = { customChargerKwText = it },
-                label = { Text("Ladeleistung (kW)") },
+                value = priceText,
+                onValueChange = { priceText = it },
+                label = { Text("Strompreis (€/kWh)") },
+                isError = priceError,
+                supportingText = {
+                    if (priceError) {
+                        Text("Geben Sie einen gültigen Preis ein")
+                    }
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -293,7 +346,7 @@ fun LadedauerScreen(
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 
-                Divider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

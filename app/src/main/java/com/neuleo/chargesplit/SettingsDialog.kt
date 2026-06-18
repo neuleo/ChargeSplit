@@ -1,6 +1,7 @@
 package com.neuleo.chargesplit
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
@@ -55,11 +56,15 @@ fun SettingsDialog(
                         readOnly = true,
                         label = { Text("Fahrzeugprofil") },
                         trailingIcon = {
-                            IconButton(onClick = { expanded = true }) {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
-                            }
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
                         },
                         modifier = Modifier.fillMaxWidth()
+                    )
+                    // Click overlay to capture clicks anywhere on the field
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable { expanded = true }
                     )
                     DropdownMenu(
                         expanded = expanded,
