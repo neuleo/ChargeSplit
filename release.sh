@@ -1,0 +1,215 @@
+#!/bin/bash
+
+# =============================================================================
+#  ChargeSplit – GitHub Release Script
+#  Usage: ./release.sh [version] [build-type]
+#  Example: ./release.sh 1.0.1 debug
+#           ./release.sh 1.2.0 release
+#  Defaults: version aus build.gradle.kts, build-type = debug
+# =============================================================================
+
+set -e  # Abbruch bei Fehler
+
+# ── Farben ────────────────────────────────────────────────────────────────────
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# ── Hilfsfunktionen ───────────────────────────────────────────────────────────
+log()     { echo -e "${CYAN}[INFO]${NC}  $1"; }
+success() { echo -e "${GREEN}[OK]${NC}    $1"; }
+warn()    { echo -e "${YELLOW}[WARN]${NC}  $1"; }
+error()   { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
+step()    { echo -e "\n${BLUE}══════════════════════════════════════${NC}"; echo -e "${BLUE}  $1${NC}"; echo -e "${BLUE}══════════════════════════════════════${NC}"; }
+
+# ── Projektverzeichnis ────────────────────────────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# ── Parameter ─────────────────────────────────────────────────────────────────
+BUILD_GRADLE="app/build.gradle.kts"
+
+# Version aus build.gradle.kts lesen (Fallback auf Argument 1)
+GRADLE_VERSION=$(grep 'versionName' "$BUILD_GRADLE" | sed 's/.*"\(.*\)".*/\1/')
+VERSION="${1:-$GRADLE_VERSION}"
+BUILD_TYPE="${2:-debug}"  # debug oder release
+
+TAG="v${VERSION}"
+
+# APK Pfad je nach Build-Typ
+if [ "$BUILD_TYPE" = "release" ]; then
+    APK_PATH="app/build/outputs/apk/release/app-release-unsigned.apk"
+    GRADLE_TASK="assembleRelease"
+    APK_LABEL="app-release-unsigned.apk"
+else
+    APK_PATH="app/build/outputs/apk/debug/app-debug.apk"
+    GRADLE_TASK="assembleDebug"
+    APK_LABEL="app-debug.apk"
+fi
+
+# Benannter APK mit Version (für den Release)
+OUTPUT_APK="ChargeSplit-${TAG}-${BUILD_TYPE}.apk"
+
+# ── Start ─────────────────────────────────────────────────────────────────────
+echo ""
+echo -e "${CYAN}╔══════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║   ChargeSplit Release Script         ║${NC}"
+echo -e "${CYAN}╚══════════════════════════════════════╝${NC}"
+echo ""
+log "Version:    ${TAG}"
+log "Build-Typ:  ${BUILD_TYPE}"
+log "APK-Output: ${OUTPUT_APK}"
+
+# ── Voraussetzungen prüfen ────────────────────────────────────────────────────
+step "Voraussetzungen prüfen"
+
+SKIP_GH_RELEASE=false
+
+# gh CLI vorhanden?
+if ! command -v gh &> /dev/null; then
+    warn "GitHub CLI (gh) ist nicht installiert. GitHub Release wird übersprungen."
+    SKIP_GH_RELEASE=true
+else
+    success "GitHub CLI gefunden: $(gh --version | head -1)"
+fi
+
+# Eingeloggt?
+if [ "$SKIP_GH_RELEASE" = "false" ]; then
+    if ! gh auth status &> /dev/null; then
+        warn "Du bist nicht bei GitHub eingeloggt. GitHub Release wird übersprungen."
+        SKIP_GH_RELEASE=true
+    else
+        success "GitHub Login OK"
+    fi
+fi
+
+# Gradle vorhanden?
+if [ ! -f "./gradlew" ]; then
+    error "gradlew nicht gefunden. Bist du im richtigen Verzeichnis?"
+fi
+success "gradlew gefunden"
+
+# Git-Status prüfen (warnung bei uncommited changes)
+if [ -n "$(git status --porcelain)" ]; then
+    warn "Es gibt uncommittete Änderungen. Der Release wird trotzdem erstellt."
+fi
+
+# ── Git Tag prüfen ────────────────────────────────────────────────────────────
+step "Git Tag prüfen"
+
+if git rev-parse "$TAG" &> /dev/null; then
+    warn "Tag ${TAG} existiert bereits."
+    if [ "$NON_INTERACTIVE" = "true" ]; then
+        OVERWRITE="y"
+    else
+        read -p "  Soll der bestehende Tag überschrieben werden? (j/N): " OVERWRITE
+    fi
+    if [[ "$OVERWRITE" =~ ^[jJyY]$ ]]; then
+        log "Lösche alten Tag ${TAG}..."
+        git tag -d "$TAG" 2>/dev/null || true
+        git push origin --delete "$TAG" 2>/dev/null || true
+        # Auch den GitHub Release löschen falls vorhanden
+        if [ "$SKIP_GH_RELEASE" = "false" ]; then
+            gh release delete "$TAG" --yes 2>/dev/null || true
+        fi
+    else
+        error "Abgebrochen. Bitte eine andere Version angeben: ./release.sh <version>"
+    fi
+fi
+
+# ── APK bauen ─────────────────────────────────────────────────────────────────
+step "APK bauen (${BUILD_TYPE})"
+log "Starte: ./gradlew ${GRADLE_TASK} ..."
+echo ""
+
+./gradlew "$GRADLE_TASK" || error "Gradle Build fehlgeschlagen!"
+
+echo ""
+if [ ! -f "$APK_PATH" ]; then
+    error "APK nicht gefunden unter: ${APK_PATH}"
+fi
+success "APK erfolgreich gebaut!"
+
+# APK umbenennen/kopieren mit Versions-Label
+cp "$APK_PATH" "$OUTPUT_APK"
+log "APK kopiert als: ${OUTPUT_APK}"
+
+APK_SIZE=$(du -sh "$OUTPUT_APK" | cut -f1)
+log "APK Größe: ${APK_SIZE}"
+
+# ── Git Tag erstellen ─────────────────────────────────────────────────────────
+step "Git Tag erstellen"
+
+git tag "$TAG"
+log "Tag ${TAG} erstellt"
+
+git push origin "$TAG" || warn "Tag konnte nicht gepusht werden (kein Remote?)"
+success "Tag ${TAG} auf GitHub gepusht"
+
+# ── Release Notes eingeben ────────────────────────────────────────────────────
+step "Release Notes"
+
+RELEASE_NOTES=""
+if [ "$NON_INTERACTIVE" = "true" ]; then
+    log "Non-interactive mode: using auto release notes."
+else
+    echo -e "${YELLOW}Was gibt es Neues in Version ${VERSION}?${NC}"
+    echo "(Leer lassen für automatische Notiz, CTRL+D zum Abschließen):"
+    echo ""
+    while IFS= read -r line; do
+        RELEASE_NOTES+="${line}"$'\n'
+    done
+fi
+
+if [ -z "$(echo "$RELEASE_NOTES" | tr -d '[:space:]')" ]; then
+    RELEASE_NOTES="## ChargeSplit ${TAG}
+
+Neue Version der ChargeSplit App.
+
+### Download
+Lade die APK herunter und installiere sie direkt auf deinem Android-Gerät.
+
+> **Hinweis:** Aktiviere in den Android-Einstellungen \"Unbekannte Quellen\" um die APK zu installieren."
+    log "Automatische Release Notes verwendet."
+fi
+
+# ── GitHub Release erstellen ──────────────────────────────────────────────────
+step "GitHub Release erstellen"
+
+if [ "$SKIP_GH_RELEASE" = "true" ]; then
+    warn "Überspringe Erstellung des GitHub-Releases (nicht eingeloggt / kein gh CLI)."
+else
+    log "Erstelle Release ${TAG} auf GitHub..."
+    gh release create "$TAG" \
+        "$OUTPUT_APK" \
+        --title "ChargeSplit ${TAG}" \
+        --notes "$RELEASE_NOTES" \
+        --latest
+    echo ""
+    success "🎉 Release erfolgreich veröffentlicht!"
+fi
+
+# ── Aufräumen ────────────────────────────────────────────────────────────────
+rm -f "$OUTPUT_APK"
+log "Temporäre APK-Kopie gelöscht."
+
+# ── Release URL anzeigen ──────────────────────────────────────────────────────
+step "Fertig!"
+
+REPO_URL=""
+if [ "$SKIP_GH_RELEASE" = "false" ]; then
+    REPO_URL=$(gh repo view --json url -q .url 2>/dev/null || echo "")
+fi
+if [ -n "$REPO_URL" ]; then
+    echo -e "${GREEN}✅ APK ist jetzt herunterladbar unter:${NC}"
+    echo -e "   ${CYAN}${REPO_URL}/releases/tag/${TAG}${NC}"
+fi
+
+echo ""
+echo -e "${GREEN}Nächste Schritte:${NC}"
+echo "  1. Öffne den Link oben um den Release zu sehen"
+echo "  2. Teile den Link mit anderen zum Herunterladen"
+echo ""
