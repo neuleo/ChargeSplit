@@ -136,4 +136,59 @@ class PreferencesManagerTest {
         assertEquals(0.91f, manager.acEfficiency)
         assertEquals(0.93f, manager.dcEfficiency)
     }
+
+    @Test
+    fun testChargerSpecificEfficiencies() {
+        val fakePrefs = FakeSharedPreferences()
+        val manager = PreferencesManager(fakePrefs)
+
+        // Default values for custom vehicle
+        assertEquals(0.85f, manager.getChargerEfficiency("custom", "Schuko (2.3 kW)", true))
+        assertEquals(0.90f, manager.getChargerEfficiency("custom", "Wallbox AC 11 kW", true))
+        assertEquals(0.90f, manager.getChargerEfficiency("custom", "Benutzerdefiniert", true))
+
+        // Default values for Tesla Model S P85
+        assertEquals(0.85f, manager.getChargerEfficiency("tesla_s_p85", "Schuko (2.3 kW)", true))
+        assertEquals(0.91f, manager.getChargerEfficiency("tesla_s_p85", "Wallbox AC 11 kW", true))
+        assertEquals(0.93f, manager.getChargerEfficiency("tesla_s_p85", "DC Schnelllader 50 kW", false))
+
+        // Saving and loading custom efficiencies
+        manager.setChargerEfficiency("tesla_s_p85", "Wallbox AC 11 kW", 0.88f)
+        assertEquals(0.88f, manager.getChargerEfficiency("tesla_s_p85", "Wallbox AC 11 kW", true))
+        // SharedPreferences storage check
+        assertEquals(0.88f, fakePrefs.getFloat("pref_tesla_s_p85_efficiency_wallbox_ac_11kw", 0f))
+    }
+
+    @Test
+    fun testPresetOverrides() {
+        val fakePrefs = FakeSharedPreferences()
+        val manager = PreferencesManager(fakePrefs)
+
+        // Select Tesla preset, verify it has default values initially
+        manager.vehiclePresetId = "tesla_s_p85"
+        assertEquals(85.0f, manager.batteryNominalKwh)
+        assertEquals(0.91f, manager.acEfficiency)
+
+        // Set overrides for Tesla
+        manager.batteryNominalKwh = 83.0f
+        manager.acEfficiency = 0.89f
+
+        // Verify they are returned from getters
+        assertEquals(83.0f, manager.batteryNominalKwh)
+        assertEquals(0.89f, manager.acEfficiency)
+
+        // Verify the keys in fakePrefs
+        assertEquals(83.0f, fakePrefs.getFloat("pref_tesla_s_p85_battery_nominal_kwh", 0f))
+        assertEquals(0.89f, fakePrefs.getFloat("pref_tesla_s_p85_ac_efficiency", 0f))
+
+        // Change preset to Leapmotor, verify Leapmotor defaults are returned
+        manager.vehiclePresetId = "leapmotor_t03"
+        assertEquals(37.3f, manager.batteryNominalKwh)
+        assertEquals(0.90f, manager.acEfficiency)
+
+        // Switch back to Tesla, verify the overrides are still there
+        manager.vehiclePresetId = "tesla_s_p85"
+        assertEquals(83.0f, manager.batteryNominalKwh)
+        assertEquals(0.89f, manager.acEfficiency)
+    }
 }
