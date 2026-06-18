@@ -8,7 +8,8 @@ data class VehiclePreset(
     val maxAcKw: Float,
     val maxDcKw: Float,
     val acEfficiency: Float,
-    val dcEfficiency: Float
+    val dcEfficiency: Float,
+    val isSinglePhaseAc: Boolean = false
 ) {
     companion object {
         val TESLA_S_P85 = VehiclePreset(
@@ -30,7 +31,8 @@ data class VehiclePreset(
             maxAcKw = 6.6f,
             maxDcKw = 48.0f,
             acEfficiency = 0.90f,
-            dcEfficiency = 0.92f
+            dcEfficiency = 0.92f,
+            isSinglePhaseAc = true
         )
 
         val CUSTOM = VehiclePreset(

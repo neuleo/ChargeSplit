@@ -11,6 +11,15 @@ object ChargingCalculator {
         val isCapped: Boolean
     )
 
+    fun getSinglePhaseLimit(chargerKw: Float): Float {
+        return when {
+            chargerKw >= 22f -> 4.6f   // 20A limit at 22kW/32A charger
+            chargerKw >= 11f -> 3.68f  // 16A limit at 11kW/16A charger
+            chargerKw >= 7.4f -> 4.6f  // 20A Schieflast limit at 7.4kW charger
+            else -> chargerKw
+        }
+    }
+
     fun calculateChargingDuration(
         startSoc: Float,
         targetSoc: Float,
@@ -24,7 +33,16 @@ object ChargingCalculator {
         val effectiveCapacity = preset.nominalKwh * (1f - degradation / 100f)
         val energyNeeded = effectiveCapacity * deltaSoc / 100f
 
-        val vehicleMaxChargerKw = if (isAc) preset.maxAcKw else preset.maxDcKw
+        val vehicleMaxChargerKw = if (isAc) {
+            if (preset.isSinglePhaseAc) {
+                minOf(preset.maxAcKw, getSinglePhaseLimit(chargerKw))
+            } else {
+                preset.maxAcKw
+            }
+        } else {
+            preset.maxDcKw
+        }
+
         val effectivePowerKw = minOf(chargerKw, vehicleMaxChargerKw)
         val isCapped = chargerKw > vehicleMaxChargerKw
 

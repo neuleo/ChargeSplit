@@ -34,7 +34,7 @@ fun LadedauerScreen(
     var startTime by remember { mutableStateOf(Calendar.getInstance()) }
     val formattedTime = String.format(Locale.US, "%02d:%02d", startTime.get(Calendar.HOUR_OF_DAY), startTime.get(Calendar.MINUTE))
 
-    val timePickerDialog = remember {
+    val timePickerDialog = remember(startTime) {
         TimePickerDialog(
             context,
             { _, hourOfDay, minute ->
@@ -219,11 +219,19 @@ fun LadedauerScreen(
         // Startzeit
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(text = "Startzeit: $formattedTime", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+            Text(
+                text = "Startzeit: $formattedTime",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f)
+            )
             Button(onClick = { timePickerDialog.show() }) {
                 Text("Zeit wählen")
+            }
+            OutlinedButton(onClick = { startTime = Calendar.getInstance() }) {
+                Text("Jetzt")
             }
         }
 
@@ -306,7 +314,7 @@ fun LadedauerScreen(
 
         // Capping Info Note
         if (result.isCapped) {
-            val maxRate = if (isAc) activePreset.maxAcKw else activePreset.maxDcKw
+            val maxRate = result.effectivePowerKw
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)

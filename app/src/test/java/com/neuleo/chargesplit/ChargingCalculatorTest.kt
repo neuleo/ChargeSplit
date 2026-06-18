@@ -70,18 +70,37 @@ class ChargingCalculatorTest {
 
     @Test
     fun testPowerCappingAc() {
+        // At a 22 kW charger, single-phase AC charging is capped at 4.6 kW due to Schieflastverordnung
         val result = ChargingCalculator.calculateChargingDuration(
             startSoc = 20f,
             targetSoc = 80f,
-            chargerKw = 22f, // exceeds Leapmotor's 6.6kW max AC rate
+            chargerKw = 22f,
             isAc = true,
             preset = VehiclePreset.LEAPMOTOR_T03,
             degradation = 0f,
             electricityPrice = 0.35f
         )
 
-        // capped power = 6.6kW
-        assertEquals(6.6f, result.effectivePowerKw, 0.01f)
+        // capped power = 4.6kW
+        assertEquals(4.6f, result.effectivePowerKw, 0.01f)
+        assertTrue(result.isCapped)
+    }
+
+    @Test
+    fun testPowerCappingAc11kW() {
+        // At an 11 kW charger (3x16A), single-phase AC charging is limited to 16A * 230V = 3.68 kW
+        val result = ChargingCalculator.calculateChargingDuration(
+            startSoc = 20f,
+            targetSoc = 80f,
+            chargerKw = 11f,
+            isAc = true,
+            preset = VehiclePreset.LEAPMOTOR_T03,
+            degradation = 0f,
+            electricityPrice = 0.35f
+        )
+
+        // capped power = 3.68kW
+        assertEquals(3.68f, result.effectivePowerKw, 0.01f)
         assertTrue(result.isCapped)
     }
 }
