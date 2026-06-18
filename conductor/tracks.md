@@ -4,6 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Charging duration calibration wizard and preset editing overrides**
+- [x] **Track: Charging duration calibration wizard and preset editing overrides**
 *Link: [./tracks/calibration_20260618/](./tracks/calibration_20260618/)*
 
