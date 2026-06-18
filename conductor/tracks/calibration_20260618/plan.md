@@ -19,7 +19,7 @@
 - [x] Task: Build Calibration Wizard Dialog UI (Manual Verification) [ab096a0]
     - [x] Implement a Calibration Dialog in `LadedauerScreen.kt` featuring input fields for charger type, start/target SOC, and measured actual duration.
     - [x] Wire the "Kalibrieren" button to perform the calculation and save the result as a charger-specific override for the active vehicle preset.
-- [ ] Task: Wire Ladedauer Calculation to Charger-Specific Efficiency (TDD)
-    - [ ] Write unit tests verifying that the charging duration calculation loads and uses the charger-specific efficiency for the active vehicle and charger type.
-    - [ ] Wire `LadedauerScreen` to use the charger-specific efficiency from the preferences manager during calculation.
+- [x] Task: Wire Ladedauer Calculation to Charger-Specific Efficiency (TDD) [597efb0]
+    - [x] Write unit tests verifying that the charging duration calculation loads and uses the charger-specific efficiency for the active vehicle and charger type.
+    - [x] Wire `LadedauerScreen` to use the charger-specific efficiency from the preferences manager during calculation.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: UI Integration and Wiring' (Protocol in workflow.md)
