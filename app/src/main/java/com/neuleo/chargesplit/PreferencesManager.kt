@@ -128,7 +128,7 @@ class PreferencesManager(private val prefs: SharedPreferences) {
     }
 
     // Charger-Specific Efficiencies
-    private fun getChargerKey(chargerType: String): String {
+    fun getChargerKey(chargerType: String): String {
         return when (chargerType) {
             "Schuko (2.3 kW)" -> "schuko"
             "Wallbox AC 11 kW" -> "wallbox_ac_11kw"
@@ -137,6 +137,16 @@ class PreferencesManager(private val prefs: SharedPreferences) {
             "Benutzerdefiniert" -> "custom"
             else -> chargerType.lowercase(java.util.Locale.US).replace(Regex("[^a-z0-9_]"), "_")
         }
+    }
+
+    fun isChargerCalibrated(vehicleId: String, chargerType: String): Boolean {
+        val key = "pref_${vehicleId}_efficiency_${getChargerKey(chargerType)}"
+        return prefs.contains(key)
+    }
+
+    fun clearChargerEfficiency(vehicleId: String, chargerType: String) {
+        val key = "pref_${vehicleId}_efficiency_${getChargerKey(chargerType)}"
+        prefs.edit().remove(key).apply()
     }
 
     fun getChargerEfficiency(vehicleId: String, chargerType: String, isAc: Boolean = true): Float {
@@ -158,3 +168,4 @@ class PreferencesManager(private val prefs: SharedPreferences) {
         prefs.edit().putFloat(key, efficiency).apply()
     }
 }
+

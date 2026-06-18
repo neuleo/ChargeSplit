@@ -25,45 +25,69 @@ class PreferencesManagerTest {
 
         class FakeEditor(private val fakePrefs: FakeSharedPreferences) : SharedPreferences.Editor {
             private val tempMap = mutableMapOf<String, Any>()
+            private val removedKeys = mutableSetOf<String>()
 
             override fun putString(key: String, value: String?): SharedPreferences.Editor {
-                if (value != null) tempMap[key] = value else tempMap.remove(key)
+                if (value != null) {
+                    tempMap[key] = value
+                    removedKeys.remove(key)
+                } else {
+                    removedKeys.add(key)
+                    tempMap.remove(key)
+                }
                 return this
             }
             override fun putStringSet(key: String, values: MutableSet<String>?): SharedPreferences.Editor {
-                if (values != null) tempMap[key] = values else tempMap.remove(key)
+                if (values != null) {
+                    tempMap[key] = values
+                    removedKeys.remove(key)
+                } else {
+                    removedKeys.add(key)
+                    tempMap.remove(key)
+                }
                 return this
             }
             override fun putInt(key: String, value: Int): SharedPreferences.Editor {
                 tempMap[key] = value
+                removedKeys.remove(key)
                 return this
             }
             override fun putLong(key: String, value: Long): SharedPreferences.Editor {
                 tempMap[key] = value
+                removedKeys.remove(key)
                 return this
             }
             override fun putFloat(key: String, value: Float): SharedPreferences.Editor {
                 tempMap[key] = value
+                removedKeys.remove(key)
                 return this
             }
             override fun putBoolean(key: String, value: Boolean): SharedPreferences.Editor {
                 tempMap[key] = value
+                removedKeys.remove(key)
                 return this
             }
             override fun remove(key: String): SharedPreferences.Editor {
-                tempMap.remove(key) // In simple fake we don't handle removal markers, but this is enough
+                removedKeys.add(key)
+                tempMap.remove(key)
                 return this
             }
             override fun clear(): SharedPreferences.Editor {
+                removedKeys.addAll(fakePrefs.map.keys)
                 tempMap.clear()
                 return this
             }
             override fun commit(): Boolean {
+                for (k in removedKeys) {
+                    fakePrefs.map.remove(k)
+                }
                 fakePrefs.map.putAll(tempMap)
+                removedKeys.clear()
+                tempMap.clear()
                 return true
             }
             override fun apply() {
-                fakePrefs.map.putAll(tempMap)
+                commit()
             }
         }
     }
@@ -191,4 +215,22 @@ class PreferencesManagerTest {
         assertEquals(83.0f, manager.batteryNominalKwh)
         assertEquals(0.89f, manager.acEfficiency)
     }
+
+    @Test
+    fun testCalibrationStatusAndClear() {
+        val fakePrefs = FakeSharedPreferences()
+        val manager = PreferencesManager(fakePrefs)
+
+        // Initially not calibrated
+        org.junit.Assert.assertFalse(manager.isChargerCalibrated("tesla_s_p85", "Wallbox AC 11 kW"))
+
+        // Set efficiency -> should be calibrated
+        manager.setChargerEfficiency("tesla_s_p85", "Wallbox AC 11 kW", 0.88f)
+        org.junit.Assert.assertTrue(manager.isChargerCalibrated("tesla_s_p85", "Wallbox AC 11 kW"))
+
+        // Clear efficiency -> should not be calibrated anymore
+        manager.clearChargerEfficiency("tesla_s_p85", "Wallbox AC 11 kW")
+        org.junit.Assert.assertFalse(manager.isChargerCalibrated("tesla_s_p85", "Wallbox AC 11 kW"))
+    }
 }
+
