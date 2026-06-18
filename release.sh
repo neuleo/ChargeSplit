@@ -19,14 +19,17 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # ── Hilfsfunktionen ───────────────────────────────────────────────────────────
-log()     { echo -e "${CYAN}[INFO]${NC}  $1"; }
-success() { echo -e "${GREEN}[OK]${NC}    $1"; }
-warn()    { echo -e "${YELLOW}[WARN]${NC}  $1"; }
-error()   { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
-step()    { echo -e "\n${BLUE}══════════════════════════════════════${NC}"; echo -e "${BLUE}  $1${NC}"; echo -e "${BLUE}══════════════════════════════════════${NC}"; }
+echo_e() {
+    printf '%b\n' "$*"
+}
+log()     { echo_e "${CYAN}[INFO]${NC}  $1"; }
+success() { echo_e "${GREEN}[OK]${NC}    $1"; }
+warn()    { echo_e "${YELLOW}[WARN]${NC}  $1"; }
+error()   { echo_e "${RED}[ERROR]${NC} $1"; exit 1; }
+step()    { echo_e "\n${BLUE}══════════════════════════════════════${NC}"; echo_e "${BLUE}  $1${NC}"; echo_e "${BLUE}══════════════════════════════════════${NC}"; }
 
 # ── Projektverzeichnis ────────────────────────────────────────────────────────
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # ── Parameter ─────────────────────────────────────────────────────────────────
@@ -45,7 +48,9 @@ fi
 
 VERSION=$BASE_VERSION
 while echo "$EXISTING_TAGS" | grep -q "^v${VERSION}$"; do
-    IFS='.' read -r major minor patch <<< "$VERSION"
+    major=$(echo "$VERSION" | cut -d. -f1)
+    minor=$(echo "$VERSION" | cut -d. -f2)
+    patch=$(echo "$VERSION" | cut -d. -f3)
     patch=$((patch + 1))
     VERSION="${major}.${minor}.${patch}"
 done
@@ -55,14 +60,14 @@ BUILD_TYPE="${2:-debug}"  # debug oder release
 
 # Falls sich die Version geändert hat, in build.gradle.kts anpassen und committen
 if [ "$VERSION" != "$GRADLE_VERSION" ]; then
-    echo -e "${YELLOW}[INFO]${NC} Aktualisiere $BUILD_GRADLE von $GRADLE_VERSION auf $VERSION..."
+    echo_e "${YELLOW}[INFO]${NC} Aktualisiere $BUILD_GRADLE von $GRADLE_VERSION auf $VERSION..."
     sed -i 's/versionName = "[^"]*"/versionName = "'"$VERSION"'"/' "$BUILD_GRADLE"
     
     GRADLE_CODE=$(grep 'versionCode' "$BUILD_GRADLE" | sed 's/[^0-9]//g')
     if [ -n "$GRADLE_CODE" ]; then
         NEW_CODE=$((GRADLE_CODE + 1))
         sed -i 's/versionCode = [0-9]*/versionCode = '"$NEW_CODE"'/' "$BUILD_GRADLE"
-        echo -e "${YELLOW}[INFO]${NC} versionCode auf $NEW_CODE aktualisiert."
+        echo_e "${YELLOW}[INFO]${NC} versionCode auf $NEW_CODE aktualisiert."
     fi
     
     git add "$BUILD_GRADLE"
@@ -86,9 +91,9 @@ OUTPUT_APK="ChargeSplit-${TAG}-${BUILD_TYPE}.apk"
 
 # ── Start ─────────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${CYAN}╔══════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║   ChargeSplit Release Script         ║${NC}"
-echo -e "${CYAN}╚══════════════════════════════════════╝${NC}"
+echo_e "${CYAN}╔══════════════════════════════════════╗${NC}"
+echo_e "${CYAN}║   ChargeSplit Release Script         ║${NC}"
+echo_e "${CYAN}╚══════════════════════════════════════╝${NC}"
 echo ""
 log "Version:    ${TAG}"
 log "Build-Typ:  ${BUILD_TYPE}"
@@ -138,7 +143,7 @@ if git rev-parse "$TAG" &> /dev/null; then
     else
         read -p "  Soll der bestehende Tag überschrieben werden? (j/N): " OVERWRITE
     fi
-    if [[ "$OVERWRITE" =~ ^[jJyY]$ ]]; then
+    if [ "$OVERWRITE" = "j" ] || [ "$OVERWRITE" = "J" ] || [ "$OVERWRITE" = "y" ] || [ "$OVERWRITE" = "Y" ]; then
         log "Lösche alten Tag ${TAG}..."
         git tag -d "$TAG" 2>/dev/null || true
         git push origin --delete "$TAG" 2>/dev/null || true
@@ -187,7 +192,7 @@ RELEASE_NOTES=""
 if [ "$NON_INTERACTIVE" = "true" ]; then
     log "Non-interactive mode: using auto release notes."
 else
-    echo -e "${YELLOW}Was gibt es Neues in Version ${VERSION}?${NC}"
+    echo_e "${YELLOW}Was gibt es Neues in Version ${VERSION}?${NC}"
     echo "(Leer lassen für automatische Notiz, CTRL+D zum Abschließen):"
     echo ""
     while IFS= read -r line; do
@@ -235,12 +240,12 @@ if [ "$SKIP_GH_RELEASE" = "false" ]; then
     REPO_URL=$(gh repo view --json url -q .url 2>/dev/null || echo "")
 fi
 if [ -n "$REPO_URL" ]; then
-    echo -e "${GREEN}✅ APK ist jetzt herunterladbar unter:${NC}"
-    echo -e "   ${CYAN}${REPO_URL}/releases/tag/${TAG}${NC}"
+    echo_e "${GREEN}✅ APK ist jetzt herunterladbar unter:${NC}"
+    echo_e "   ${CYAN}${REPO_URL}/releases/tag/${TAG}${NC}"
 fi
 
 echo ""
-echo -e "${GREEN}Nächste Schritte:${NC}"
+echo_e "${GREEN}Nächste Schritte:${NC}"
 echo "  1. Öffne den Link oben um den Release zu sehen"
 echo "  2. Teile den Link mit anderen zum Herunterladen"
 echo ""
