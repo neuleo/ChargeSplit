@@ -9,11 +9,11 @@
     - [x] Update `SettingsDialog` and `MainActivity` to persist overrides under the active vehicle preset name instead of resetting to "Custom".
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Preset Overrides and Charger-Specific Efficiency Storage' (Protocol in workflow.md) [8b2a0f0]
 
-## Phase 2: Calibration Calculation Logic
+## Phase 2: Calibration Calculation Logic [checkpoint: 9f8652c]
 - [x] Task: Implement Calibration Formula (TDD) [27a3b12]
     - [x] Write unit tests in `ChargingCalculatorTest.kt` verifying that the calibration formula correctly calculates efficiency based on start SOC, target SOC, charger power, and actual duration.
     - [x] Implement `ChargingCalculator.calculateCalibratedEfficiency` logic.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Calibration Calculation Logic' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Calibration Calculation Logic' (Protocol in workflow.md) [9f8652c]
 
 ## Phase 3: UI Integration and Wiring
 - [ ] Task: Build Calibration Wizard Dialog UI (Manual Verification)
