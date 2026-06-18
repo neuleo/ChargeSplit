@@ -130,4 +130,23 @@ class ChargingCalculatorTest {
         )
         assertEquals(0f, zeroEfficiency, 0.001f)
     }
+
+    @Test
+    fun testCalculateChargingDurationWithEfficiencyOverride() {
+        val result = ChargingCalculator.calculateChargingDuration(
+            startSoc = 20f,
+            targetSoc = 80f,
+            chargerKw = 11f,
+            isAc = true,
+            preset = VehiclePreset.TESLA_S_P85,
+            degradation = 0f,
+            electricityPrice = 0.35f,
+            efficiencyOverride = 0.85f // override 91% default with 85%
+        )
+
+        // energy needed = 51kWh, grid drawn = 51 / 0.85 = 60.0kWh
+        // duration = (60.0 / 11) * 60 = 327.27 min
+        assertEquals(327.27f, result.durationMinutes, 0.5f)
+        assertEquals(60.0f, result.gridEnergyKwh, 0.1f)
+    }
 }

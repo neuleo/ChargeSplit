@@ -33,6 +33,7 @@ fun LadedauerScreen(
     var showCalibrationDialog by remember { mutableStateOf(false) }
     var calibrationResultEfficiency by remember { mutableStateOf<Float?>(null) }
     var calibratedChargerType by remember { mutableStateOf("") }
+    var calibrationTrigger by remember { mutableStateOf(0) }
     
     var startTime by remember { mutableStateOf(Calendar.getInstance()) }
     val formattedTime = String.format(Locale.US, "%02d:%02d", startTime.get(Calendar.HOUR_OF_DAY), startTime.get(Calendar.MINUTE))
@@ -108,8 +109,12 @@ fun LadedauerScreen(
     }
     val isAc = chargerType != "DC Schnelllader 50 kW" && (chargerType != "Benutzerdefiniert" || chargerKw <= 22.0f)
 
+    val currentEfficiency = remember(activePreset.id, chargerType, isAc, activePreset.acEfficiency, activePreset.dcEfficiency, calibrationTrigger) {
+        prefsManager.getChargerEfficiency(activePreset.id, chargerType, isAc)
+    }
+
     // Run charging calculator
-    val result = remember(startSoc, targetSoc, chargerKw, isAc, activePreset, prefsManager.batteryDegradation, electricityPrice) {
+    val result = remember(startSoc, targetSoc, chargerKw, isAc, activePreset, prefsManager.batteryDegradation, electricityPrice, currentEfficiency) {
         ChargingCalculator.calculateChargingDuration(
             startSoc = startSoc,
             targetSoc = targetSoc,
@@ -117,7 +122,8 @@ fun LadedauerScreen(
             isAc = isAc,
             preset = activePreset,
             degradation = prefsManager.batteryDegradation,
-            electricityPrice = electricityPrice
+            electricityPrice = electricityPrice,
+            efficiencyOverride = currentEfficiency
         )
     }
 
@@ -422,6 +428,7 @@ fun LadedauerScreen(
             onCalibrated = { eff, type ->
                 calibrationResultEfficiency = eff
                 calibratedChargerType = type
+                calibrationTrigger++
                 showCalibrationDialog = false
             }
         )

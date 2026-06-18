@@ -27,7 +27,8 @@ object ChargingCalculator {
         isAc: Boolean,
         preset: VehiclePreset,
         degradation: Float,
-        electricityPrice: Float
+        electricityPrice: Float,
+        efficiencyOverride: Float? = null
     ): ChargingResult {
         val deltaSoc = (targetSoc - startSoc).coerceAtLeast(0f)
         val effectiveCapacity = preset.nominalKwh * (1f - degradation / 100f)
@@ -46,7 +47,7 @@ object ChargingCalculator {
         val effectivePowerKw = minOf(chargerKw, vehicleMaxChargerKw)
         val isCapped = chargerKw > vehicleMaxChargerKw
 
-        val efficiency = if (isAc) preset.acEfficiency else preset.dcEfficiency
+        val efficiency = efficiencyOverride ?: (if (isAc) preset.acEfficiency else preset.dcEfficiency)
         val gridEnergyDrawn = energyNeeded / efficiency
 
         val durationMinutes = if (effectivePowerKw > 0f) {
