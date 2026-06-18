@@ -103,4 +103,31 @@ class ChargingCalculatorTest {
         assertEquals(3.68f, result.effectivePowerKw, 0.01f)
         assertTrue(result.isCapped)
     }
+
+    @Test
+    fun testCalculateCalibratedEfficiency() {
+        // Capacity: 85 kWh
+        // startSoc: 20%, targetSoc: 80% -> delta = 60%
+        // energy needed = 85 * 0.60 = 51 kWh
+        // duration: 5 hours, power: 11 kW
+        // efficiency = 51 / (5 * 11) = 51 / 55 = 0.9272... (92.7%)
+        val efficiency = ChargingCalculator.calculateCalibratedEfficiency(
+            startSoc = 20f,
+            targetSoc = 80f,
+            actualDurationHours = 5.0f,
+            chargerPowerKw = 11f,
+            effectiveBatteryCapacityKwh = 85f
+        )
+        assertEquals(0.927f, efficiency, 0.005f)
+
+        // Edge case: division by zero or invalid inputs
+        val zeroEfficiency = ChargingCalculator.calculateCalibratedEfficiency(
+            startSoc = 20f,
+            targetSoc = 80f,
+            actualDurationHours = 0f,
+            chargerPowerKw = 11f,
+            effectiveBatteryCapacityKwh = 85f
+        )
+        assertEquals(0f, zeroEfficiency, 0.001f)
+    }
 }

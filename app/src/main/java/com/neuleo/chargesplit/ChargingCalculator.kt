@@ -65,4 +65,18 @@ object ChargingCalculator {
             isCapped = isCapped
         )
     }
+
+    fun calculateCalibratedEfficiency(
+        startSoc: Float,
+        targetSoc: Float,
+        actualDurationHours: Float,
+        chargerPowerKw: Float,
+        effectiveBatteryCapacityKwh: Float
+    ): Float {
+        if (actualDurationHours <= 0f || chargerPowerKw <= 0f) return 0f
+        val deltaSoc = (targetSoc - startSoc).coerceAtLeast(0f)
+        val energyNeededKWh = effectiveBatteryCapacityKwh * (deltaSoc / 100f)
+        val calculated = energyNeededKWh / (actualDurationHours * chargerPowerKw)
+        return calculated.coerceIn(0f, 1f)
+    }
 }
