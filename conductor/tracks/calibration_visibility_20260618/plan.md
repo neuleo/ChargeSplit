@@ -2,10 +2,10 @@
 
 ## Phase 1: Backend and Preferences Updates
 
-- [ ] Task: Update PreferencesManager with Calibration Status & Reset Methods
-    - [ ] Write failing unit tests in `PreferencesManagerTest.kt` for `isChargerCalibrated` and a new method to clear/reset charger efficiency.
-    - [ ] Implement `isChargerCalibrated`, `getChargerKey`, and `clearChargerEfficiency` in `PreferencesManager.kt`.
-    - [ ] Verify unit tests pass.
+- [x] Task: Update PreferencesManager with Calibration Status & Reset Methods (ad651a4)
+    - [x] Write failing unit tests in `PreferencesManagerTest.kt` for `isChargerCalibrated` and a new method to clear/reset charger efficiency.
+    - [x] Implement `isChargerCalibrated`, `getChargerKey`, and `clearChargerEfficiency` in `PreferencesManager.kt`.
+    - [x] Verify unit tests pass.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend and Preferences Updates' (Protocol in workflow.md)
 
 ## Phase 2: UI Implementation and Integration
