@@ -278,6 +278,38 @@ fun LadedauerScreen(
             }
         }
 
+        // Active efficiency display with optional reset
+        val isCalibrated = remember(activePreset.id, chargerType, calibrationTrigger) {
+            prefsManager.isChargerCalibrated(activePreset.id, chargerType)
+        }
+        val displayEfficiency = (currentEfficiency * 100f).toInt()
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Ladeeffizienz: $displayEfficiency% " + if (isCalibrated) "(Kalibriert)" else "(Standard)",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (isCalibrated) {
+                TextButton(
+                    onClick = {
+                        prefsManager.clearChargerEfficiency(activePreset.id, chargerType)
+                        calibrationTrigger++
+                    },
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Text("Zurücksetzen", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+
         // Ladeleistung (falls Custom) & Strompreis Eingabe
         if (LadedauerValidator.shouldShowCustomCharger(chargerType)) {
             Row(

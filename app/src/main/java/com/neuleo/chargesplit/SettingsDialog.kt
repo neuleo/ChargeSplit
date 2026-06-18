@@ -12,6 +12,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import com.neuleo.chargesplit.model.VehiclePreset
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,6 +30,7 @@ fun SettingsDialog(
     var acEffText by remember { mutableStateOf((prefsManager.acEfficiency * 100f).toInt().toString()) }
     var dcEffText by remember { mutableStateOf((prefsManager.dcEfficiency * 100f).toInt().toString()) }
     var expanded by remember { mutableStateOf(false) }
+    var settingsChangeTrigger by remember { mutableStateOf(0) }
 
     // Validation checks
     val isBatteryValid = SettingsValidator.validateBatteryCapacity(nominalText) != null
@@ -174,6 +178,61 @@ fun SettingsDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                // List of calibrated charger efficiencies
+                val chargerTypes = listOf(
+                    "Schuko (2.3 kW)",
+                    "Wallbox AC 11 kW",
+                    "Wallbox AC 22 kW",
+                    "DC Schnelllader 50 kW",
+                    "Benutzerdefiniert"
+                )
+
+                val calibratedChargers = remember(selectedPreset.id, settingsChangeTrigger) {
+                    chargerTypes.filter { type ->
+                        prefsManager.isChargerCalibrated(selectedPreset.id, type)
+                    }
+                }
+
+                if (calibratedChargers.isNotEmpty()) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    Text(
+                        text = "Kalibrierte Ladeeffizienzen",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                    calibratedChargers.forEach { chargerType ->
+                        val efficiency = prefsManager.getChargerEfficiency(selectedPreset.id, chargerType)
+                        val effPercent = (efficiency * 100f).toInt()
+                        
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "$chargerType: $effPercent%",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            IconButton(
+                                onClick = {
+                                    prefsManager.clearChargerEfficiency(selectedPreset.id, chargerType)
+                                    settingsChangeTrigger++
+                                },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Kalibrierung löschen",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
