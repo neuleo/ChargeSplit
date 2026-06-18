@@ -1,9 +1,9 @@
 # Implementation Plan: Charging Time Calibration & Preset Editing Overrides
 
 ## Phase 1: Preset Overrides and Charger-Specific Efficiency Storage
-- [ ] Task: Model and Preferences Layer Extensions (TDD)
-    - [ ] Write unit tests in `PreferencesManagerTest.kt` for saving and loading charger-specific efficiencies (e.g. `pref_<vehicle_id>_efficiency_<charger_type>`) and vehicle-specific preset parameter overrides (e.g. `pref_<vehicle_id>_battery_nominal_kwh`).
-    - [ ] Implement reading and writing of these custom overrides in `PreferencesManager`.
+- [x] Task: Model and Preferences Layer Extensions (TDD) [ce9759b]
+    - [x] Write unit tests in `PreferencesManagerTest.kt` for saving and loading charger-specific efficiencies (e.g. `pref_<vehicle_id>_efficiency_<charger_type>`) and vehicle-specific preset parameter overrides (e.g. `pref_<vehicle_id>_battery_nominal_kwh`).
+    - [x] Implement reading and writing of these custom overrides in `PreferencesManager`.
 - [ ] Task: Settings Dialog Preset Overrides (TDD)
     - [ ] Write unit tests verifying that editing fields in the settings dialog does not reset the profile selection to "Custom" and correctly saves specific preset overrides.
     - [ ] Update `SettingsDialog` and `MainActivity` to persist overrides under the active vehicle preset name instead of resetting to "Custom".
