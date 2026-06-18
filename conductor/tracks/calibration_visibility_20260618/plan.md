@@ -10,11 +10,11 @@
 
 ## Phase 2: UI Implementation and Integration
 
-- [ ] Task: Implement Calibration Display and Reset on LadedauerScreen
-    - [ ] Add active efficiency display below the "Ladeart" selector showing whether it is calibrated or default.
-    - [ ] Add a "Zurücksetzen" (Reset) option when the current charger is calibrated, which calls the reset method and triggers UI updates.
-- [ ] Task: Implement Calibration List and Reset in SettingsDialog
-    - [ ] Add a list of calibrated chargers for the selected vehicle preset in `SettingsDialog`.
-    - [ ] Add a delete/reset button next to each calibrated charger entry to clear the calibration.
-    - [ ] Verify all tests pass, run Android Lint and check code coverage.
+- [x] Task: Implement Calibration Display and Reset on LadedauerScreen (73f7171)
+    - [x] Add active efficiency display below the "Ladeart" selector showing whether it is calibrated or default.
+    - [x] Add a "Zurücksetzen" (Reset) option when the current charger is calibrated, which calls the reset method and triggers UI updates.
+- [x] Task: Implement Calibration List and Reset in SettingsDialog (73f7171)
+    - [x] Add a list of calibrated chargers for the selected vehicle preset in `SettingsDialog`.
+    - [x] Add a delete/reset button next to each calibrated charger entry to clear the calibration.
+    - [x] Verify all tests pass, run Android Lint and check code coverage.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: UI Implementation and Integration' (Protocol in workflow.md)
