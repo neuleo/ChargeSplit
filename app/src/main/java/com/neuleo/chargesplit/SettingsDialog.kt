@@ -1,20 +1,20 @@
 package com.neuleo.chargesplit
 
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.font.FontWeight
 import com.neuleo.chargesplit.model.VehiclePreset
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,12 +23,12 @@ fun SettingsDialog(
     prefsManager: PreferencesManager,
     onDismiss: () -> Unit
 ) {
-    var selectedPreset by remember { mutableStateOf(VehiclePreset.fromId(prefsManager.vehiclePresetId)) }
-    var nominalText by remember { mutableStateOf(prefsManager.batteryNominalKwh.toString()) }
+    var selectedPreset by remember { mutableStateOf(prefsManager.selectedPreset) }
+    var nominalText by remember { mutableStateOf(prefsManager.getBatteryCapacityForPreset(selectedPreset).toString()) }
     var degradationText by remember { mutableStateOf(prefsManager.batteryDegradation.toString()) }
     var priceText by remember { mutableStateOf(prefsManager.costPerKWh.toString()) }
-    var acEffText by remember { mutableStateOf((prefsManager.acEfficiency * 100f).toInt().toString()) }
-    var dcEffText by remember { mutableStateOf((prefsManager.dcEfficiency * 100f).toInt().toString()) }
+    var acEffText by remember { mutableStateOf((prefsManager.getAcEfficiencyForPreset(selectedPreset.id) * 100f).toInt().toString()) }
+    var dcEffText by remember { mutableStateOf((prefsManager.getDcEfficiencyForPreset(selectedPreset.id) * 100f).toInt().toString()) }
     var expanded by remember { mutableStateOf(false) }
     var settingsChangeTrigger by remember { mutableStateOf(0) }
 
@@ -55,7 +55,7 @@ fun SettingsDialog(
                 // Preset Dropdown Selector
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
-                        value = selectedPreset.name,
+                        value = selectedPreset.displayName,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Fahrzeugprofil") },
@@ -64,7 +64,6 @@ fun SettingsDialog(
                         },
                         modifier = Modifier.fillMaxWidth()
                     )
-                    // Click overlay to capture clicks anywhere on the field
                     Box(
                         modifier = Modifier
                             .matchParentSize()
@@ -76,11 +75,11 @@ fun SettingsDialog(
                     ) {
                         VehiclePreset.ALL_PRESETS.forEach { preset ->
                             DropdownMenuItem(
-                                text = { Text(preset.name) },
+                                text = { Text(preset.displayName) },
                                 onClick = {
                                     selectedPreset = preset
                                     expanded = false
-                                    nominalText = prefsManager.getBatteryNominalKwhForPreset(preset.id).toString()
+                                    nominalText = prefsManager.getBatteryCapacityForPreset(preset).toString()
                                     acEffText = (prefsManager.getAcEfficiencyForPreset(preset.id) * 100f).toInt().toString()
                                     dcEffText = (prefsManager.getDcEfficiencyForPreset(preset.id) * 100f).toInt().toString()
                                 }
@@ -90,21 +89,42 @@ fun SettingsDialog(
                 }
 
                 // Battery Capacity
-                OutlinedTextField(
-                    value = nominalText,
-                    onValueChange = {
-                        nominalText = it
-                    },
-                    label = { Text("Nominale Batteriekapazität (kWh)") },
-                    isError = !isBatteryValid,
-                    supportingText = {
-                        if (!isBatteryValid) {
-                            Text("Positive Zahl erforderlich (z.B. 70.0)")
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    OutlinedTextField(
+                        value = nominalText,
+                        onValueChange = { nominalText = it },
+                        label = { Text("Nominale Batteriekapazität (kWh)") },
+                        isError = !isBatteryValid,
+                        supportingText = {
+                            if (!isBatteryValid) {
+                                Text("Positive Zahl erforderlich (z.B. 70.0)")
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Standard: ${selectedPreset.defaultCapacityKwh} kWh",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        TextButton(
+                            onClick = {
+                                nominalText = selectedPreset.defaultCapacityKwh.toString()
+                            },
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                            modifier = Modifier.height(28.dp)
+                        ) {
+                            Text("Auf Standard zurücksetzen", style = MaterialTheme.typography.labelSmall)
                         }
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    }
+                }
 
                 // Battery Degradation
                 OutlinedTextField(
@@ -123,7 +143,7 @@ fun SettingsDialog(
 
                 // Effective Capacity (Read-Only)
                 OutlinedTextField(
-                    value = String.format(java.util.Locale.US, "%.2f kWh", effectiveCap),
+                    value = String.format(java.util.Locale.GERMANY, "%.2f kWh", effectiveCap),
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Effektive nutzbare Kapazität") },
@@ -148,9 +168,7 @@ fun SettingsDialog(
                 // AC Efficiency
                 OutlinedTextField(
                     value = acEffText,
-                    onValueChange = {
-                        acEffText = it
-                    },
+                    onValueChange = { acEffText = it },
                     label = { Text("AC Ladeeffizienz (%)") },
                     isError = !isAcValid,
                     supportingText = {
@@ -165,9 +183,7 @@ fun SettingsDialog(
                 // DC Efficiency
                 OutlinedTextField(
                     value = dcEffText,
-                    onValueChange = {
-                        dcEffText = it
-                    },
+                    onValueChange = { dcEffText = it },
                     label = { Text("DC Ladeeffizienz (%)") },
                     isError = !isDcValid,
                     supportingText = {
@@ -179,13 +195,12 @@ fun SettingsDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // List of calibrated charger efficiencies
+                // Calibrated efficiencies
                 val chargerTypes = listOf(
-                    "Schuko (2.3 kW)",
-                    "Wallbox AC 11 kW",
-                    "Wallbox AC 22 kW",
-                    "DC Schnelllader 50 kW",
-                    "Benutzerdefiniert"
+                    "Schuko (10A)",
+                    "16A / 11 kW",
+                    "32A / 22 kW",
+                    "Manuell"
                 )
 
                 val calibratedChargers = remember(selectedPreset.id, settingsChangeTrigger) {
@@ -205,7 +220,7 @@ fun SettingsDialog(
                     calibratedChargers.forEach { chargerType ->
                         val efficiency = prefsManager.getChargerEfficiency(selectedPreset.id, chargerType)
                         val effPercent = (efficiency * 100f).toInt()
-                        
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -239,12 +254,12 @@ fun SettingsDialog(
             TextButton(
                 onClick = {
                     if (canSave) {
-                        prefsManager.vehiclePresetId = selectedPreset.id
-                        prefsManager.batteryNominalKwh = nominalText.toFloat()
+                        prefsManager.selectedPreset = selectedPreset
+                        prefsManager.setBatteryCapacityForPreset(selectedPreset, nominalText.toFloat())
                         prefsManager.batteryDegradation = degradationText.toFloat()
                         prefsManager.costPerKWh = priceText.toFloat()
-                        prefsManager.acEfficiency = acEffText.toFloat() / 100f
-                        prefsManager.dcEfficiency = dcEffText.toFloat() / 100f
+                        prefsManager.setAcEfficiencyForPreset(selectedPreset.id, acEffText.toFloat() / 100f)
+                        prefsManager.setDcEfficiencyForPreset(selectedPreset.id, dcEffText.toFloat() / 100f)
                         onDismiss()
                     }
                 },

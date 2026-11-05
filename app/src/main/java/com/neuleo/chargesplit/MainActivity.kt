@@ -6,12 +6,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -20,10 +20,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
+import com.neuleo.chargesplit.model.VehiclePreset
 import com.neuleo.chargesplit.ui.theme.ChargeSplitTheme
+import kotlinx.coroutines.launch
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -37,6 +40,7 @@ class MainActivity : ComponentActivity() {
                     PreferencesManager(context.getSharedPreferences("chargesplit_prefs", Context.MODE_PRIVATE))
                 }
                 var showSettingsDialog by remember { mutableStateOf(false) }
+                var currentPreset by remember { mutableStateOf(prefsManager.selectedPreset) }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -55,11 +59,21 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
-                        MainScreen(prefsManager = prefsManager)
+                        MainScreen(
+                            prefsManager = prefsManager,
+                            currentPreset = currentPreset,
+                            onPresetChange = {
+                                prefsManager.selectedPreset = it
+                                currentPreset = it
+                            }
+                        )
                         if (showSettingsDialog) {
                             SettingsDialog(
                                 prefsManager = prefsManager,
-                                onDismiss = { showSettingsDialog = false }
+                                onDismiss = {
+                                    currentPreset = prefsManager.selectedPreset
+                                    showSettingsDialog = false
+                                }
                             )
                         }
                     }
@@ -71,12 +85,57 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) {
+fun MainScreen(
+    prefsManager: PreferencesManager,
+    currentPreset: VehiclePreset,
+    onPresetChange: (VehiclePreset) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val tabs = CalculatorUtils.TABS
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
+    val presets = remember(currentPreset) {
+        if (currentPreset == VehiclePreset.CUSTOM) {
+            listOf(VehiclePreset.TESLA_MODEL_S_90D, VehiclePreset.LEAPMOTOR_T03, VehiclePreset.CUSTOM)
+        } else {
+            listOf(VehiclePreset.TESLA_MODEL_S_90D, VehiclePreset.LEAPMOTOR_T03)
+        }
+    }
+
     Column(modifier = modifier.fillMaxSize()) {
+        // Vehicle Quick Switcher directly under TopAppBar
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            presets.forEachIndexed { index, preset ->
+                val capacityStr = String.format(Locale.GERMANY, "%.1f", preset.defaultCapacityKwh)
+                SegmentedButton(
+                    selected = currentPreset == preset,
+                    onClick = { onPresetChange(preset) },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = presets.size),
+                    label = {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = preset.shortName,
+                                fontWeight = if (currentPreset == preset) FontWeight.Bold else FontWeight.Medium,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            Text(
+                                text = "$capacityStr kWh · ${preset.maxPhases}P",
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
+                )
+            }
+        }
+
         TabRow(
             selectedTabIndex = pagerState.currentPage,
             indicator = { tabPositions ->
@@ -105,49 +164,32 @@ fun MainScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) 
             modifier = Modifier.fillMaxSize()
         ) { page ->
             when (page) {
-                0 -> ChargeSplitScreen(prefsManager = prefsManager)
-                1 -> WearScreen(prefsManager = prefsManager)
-                2 -> LadedauerScreen(prefsManager = prefsManager)
+                0 -> ChargeSplitScreen(prefsManager = prefsManager, activePreset = currentPreset)
+                1 -> WearScreen(prefsManager = prefsManager, activePreset = currentPreset)
+                2 -> LadedauerScreen(prefsManager = prefsManager, activePreset = currentPreset)
             }
         }
     }
 }
 
 @Composable
-fun ChargeSplitScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) {
+fun ChargeSplitScreen(
+    prefsManager: PreferencesManager,
+    activePreset: VehiclePreset,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("chargesplit_prefs", Context.MODE_PRIVATE)
 
-    // Resolve vehicle preset and custom settings
-    val activePreset = remember(prefsManager.vehiclePresetId, prefsManager.batteryNominalKwh, prefsManager.acEfficiency, prefsManager.dcEfficiency) {
-        if (prefsManager.vehiclePresetId == "custom") {
-            com.neuleo.chargesplit.model.VehiclePreset(
-                id = "custom",
-                name = "Custom",
-                nominalKwh = prefsManager.batteryNominalKwh,
-                usableKwh = prefsManager.batteryNominalKwh,
-                maxAcKw = 22.0f,
-                maxDcKw = 150.0f,
-                acEfficiency = prefsManager.acEfficiency,
-                dcEfficiency = prefsManager.dcEfficiency
-            )
-        } else {
-            com.neuleo.chargesplit.model.VehiclePreset.fromId(prefsManager.vehiclePresetId)
-        }
-    }
-
-    // EV variables loaded from preferences manager
-    val batteryCapacity = prefsManager.effectiveCapacity
+    val batteryCapacity = prefsManager.getBatteryCapacityForPreset(activePreset) * (1f - prefsManager.batteryDegradation / 100f)
     val costPerKWh = prefsManager.costPerKWh
     val efficiency = activePreset.acEfficiency
 
-    // Zustände für die Eingaben - mit gespeicherten Werten initialisieren
     var startSOC by remember { mutableStateOf(prefs.getFloat("startSOC", 60f)) }
     var endSOC by remember { mutableStateOf(prefs.getFloat("endSOC", 40f)) }
     var passengers by remember { mutableStateOf(prefs.getInt("passengers", 0)) }
     var resultText by remember { mutableStateOf("") }
 
-    // Werte speichern bei Änderung
     LaunchedEffect(startSOC, endSOC, passengers) {
         with(prefs.edit()) {
             putFloat("startSOC", startSOC)
@@ -157,13 +199,30 @@ fun ChargeSplitScreen(prefsManager: PreferencesManager, modifier: Modifier = Mod
         }
     }
 
-    // UI
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "Fahrzeug: ${activePreset.displayName}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Kapazität: ${String.format(Locale.GERMANY, "%.1f", batteryCapacity)} kWh | Strompreis: ${String.format(Locale.GERMANY, "%.2f", costPerKWh)} €/kWh",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+
         Text(text = "Ladezustand am Start: ${startSOC.toInt()}%", style = MaterialTheme.typography.bodyLarge)
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -263,20 +322,21 @@ fun ChargeSplitScreen(prefsManager: PreferencesManager, modifier: Modifier = Mod
 }
 
 @Composable
-fun WearScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) {
+fun WearScreen(
+    prefsManager: PreferencesManager,
+    activePreset: VehiclePreset,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("chargesplit_prefs", Context.MODE_PRIVATE)
 
-    // Wear variables loaded from preferences manager
-    val wearCostPer1600Km = prefsManager.wearCostPer1600
+    val wearCostPer1600Km = prefsManager.getWearCostPer1600ForPreset(activePreset.id)
     val baseMileage = 1600f
 
-    // Zustände für die Eingaben - mit gespeicherten Werten initialisieren
-    var kilometers by remember { mutableStateOf(prefs.getString("kilometers", "")!!) }
+    var kilometers by remember { mutableStateOf(prefs.getString("kilometers", "") ?: "") }
     var wearPassengers by remember { mutableStateOf(prefs.getInt("wearPassengers", 0)) }
     var wearResultText by remember { mutableStateOf("") }
 
-    // Werte speichern bei Änderung
     LaunchedEffect(kilometers, wearPassengers) {
         with(prefs.edit()) {
             putString("kilometers", kilometers)
@@ -292,7 +352,7 @@ fun WearScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) 
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(text = "Verschleiß-Berechnung", style = MaterialTheme.typography.headlineMedium)
-        Text(text = "Basis: €60 für 1600km", style = MaterialTheme.typography.bodyMedium)
+        Text(text = "Basis: €${String.format(Locale.GERMANY, "%.0f", wearCostPer1600Km)} für 1600km (${activePreset.shortName})", style = MaterialTheme.typography.bodyMedium)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -351,139 +411,5 @@ fun WearScreen(prefsManager: PreferencesManager, modifier: Modifier = Modifier) 
         if (wearResultText.isNotEmpty()) {
             Text(text = wearResultText, style = MaterialTheme.typography.bodyLarge)
         }
-    }
-}
-
-@Composable
-fun SettingsScreen(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val prefs = context.getSharedPreferences("chargesplit_prefs", Context.MODE_PRIVATE)
-
-    // Load initial values from SharedPreferences (efficiency is stored as factor e.g. 0.90f, so convert to 90f for UI)
-    var batteryText by remember { mutableStateOf(prefs.getFloat("pref_battery_capacity", 70f).toString()) }
-    var costText by remember { mutableStateOf(prefs.getFloat("pref_cost_per_kwh", 0.35f).toString()) }
-    var efficiencyText by remember { mutableStateOf((prefs.getFloat("pref_efficiency", 0.90f) * 100f).toInt().toString()) }
-    var wearText by remember { mutableStateOf(prefs.getFloat("pref_wear_cost_per_1600", 60f).toString()) }
-
-    // Validation error states
-    var batteryError by remember { mutableStateOf(false) }
-    var costError by remember { mutableStateOf(false) }
-    var efficiencyError by remember { mutableStateOf(false) }
-    var wearError by remember { mutableStateOf(false) }
-
-    // Save states on change if valid
-    LaunchedEffect(batteryText) {
-        val validated = SettingsValidator.validateBatteryCapacity(batteryText)
-        if (validated != null) {
-            prefs.edit().putFloat("pref_battery_capacity", validated).apply()
-            batteryError = false
-        } else {
-            batteryError = true
-        }
-    }
-
-    LaunchedEffect(costText) {
-        val validated = SettingsValidator.validateCostPerKWh(costText)
-        if (validated != null) {
-            prefs.edit().putFloat("pref_cost_per_kwh", validated).apply()
-            costError = false
-        } else {
-            costError = true
-        }
-    }
-
-    LaunchedEffect(efficiencyText) {
-        val validated = SettingsValidator.validateEfficiency(efficiencyText)
-        if (validated != null) {
-            prefs.edit().putFloat("pref_efficiency", validated).apply()
-            efficiencyError = false
-        } else {
-            efficiencyError = true
-        }
-    }
-
-    LaunchedEffect(wearText) {
-        val validated = SettingsValidator.validateWearCost(wearText)
-        if (validated != null) {
-            prefs.edit().putFloat("pref_wear_cost_per_1600", validated).apply()
-            wearError = false
-        } else {
-            wearError = true
-        }
-    }
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(text = "Einstellungen", style = MaterialTheme.typography.headlineMedium)
-        Text(
-            text = "Passen Sie die Fahrzeug- und Stromparameter an. Änderungen werden sofort gespeichert.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        // Battery Capacity
-        OutlinedTextField(
-            value = batteryText,
-            onValueChange = { batteryText = it },
-            label = { Text("Batteriekapazität (kWh)") },
-            isError = batteryError,
-            supportingText = {
-                if (batteryError) {
-                    Text("Geben Sie eine positive Zahl ein (z. B. 70.0)")
-                }
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Cost per kWh
-        OutlinedTextField(
-            value = costText,
-            onValueChange = { costText = it },
-            label = { Text("Strompreis (€/kWh)") },
-            isError = costError,
-            supportingText = {
-                if (costError) {
-                    Text("Geben Sie einen gültigen Preis ein (z. B. 0.35)")
-                }
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Efficiency
-        OutlinedTextField(
-            value = efficiencyText,
-            onValueChange = { efficiencyText = it },
-            label = { Text("Ladeeffizienz (%)") },
-            isError = efficiencyError,
-            supportingText = {
-                if (efficiencyError) {
-                    Text("Geben Sie einen Wert zwischen 1 und 100 ein (z. B. 90)")
-                }
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Wear cost per 1600km
-        OutlinedTextField(
-            value = wearText,
-            onValueChange = { wearText = it },
-            label = { Text("Verschleißkosten pro 1600km (€)") },
-            isError = wearError,
-            supportingText = {
-                if (wearError) {
-                    Text("Geben Sie einen gültigen Betrag ein (z. B. 60.0)")
-                }
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }

@@ -7,6 +7,6 @@ object LadedauerValidator {
     }
 
     fun shouldShowCustomCharger(chargerType: String): Boolean {
-        return chargerType == "Benutzerdefiniert"
+        return chargerType == "Benutzerdefiniert" || chargerType == "Manuell"
     }
 }

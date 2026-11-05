@@ -11,12 +11,42 @@ object ChargingCalculator {
         val isCapped: Boolean
     )
 
+    /**
+     * Ermittelt das einphasige Limit ohne die frühere 20A-Schieflast-Drossel.
+     * Bei 22 kW Säulen (32 A) können volle 32 A (7,36 kW) gezogen werden.
+     */
     fun getSinglePhaseLimit(chargerKw: Float): Float {
         return when {
-            chargerKw >= 22f -> 4.6f   // 20A limit at 22kW/32A charger
-            chargerKw >= 11f -> 3.68f  // 16A limit at 11kW/16A charger
-            chargerKw >= 7.4f -> 4.6f  // 20A Schieflast limit at 7.4kW charger
+            chargerKw >= 22f -> 7.36f  // Volle 32A an 22kW/32A Ladesäule
+            chargerKw >= 11f -> 3.68f  // 16A Limit an 11kW/16A Ladesäule
+            chargerKw >= 7.3f -> 7.36f // 32A an 7.4kW Ladesäule
             else -> chargerKw
+        }
+    }
+
+    /**
+     * Berechnet die effektive Ladeleistung anhand der Phasen und Stromstärke
+     * unter Berücksichtigung der Fahrzeuglimits (maxPhases, maxAmps, maxAcKw).
+     */
+    fun calculateEffectivePower(
+        chargerPhases: Int,
+        chargerAmps: Int,
+        preset: VehiclePreset,
+        isAc: Boolean = true
+    ): Float {
+        if (!isAc) return preset.maxDcKw
+        val effectivePhases = minOf(chargerPhases, preset.maxPhases)
+        val effectiveAmps = minOf(chargerAmps, preset.maxAmps)
+        val grossKw = (effectivePhases * effectiveAmps * 230f) / 1000f
+        return minOf(grossKw, preset.maxAcKw)
+    }
+
+    fun getEffectiveAcChargerKw(chargerKw: Float, preset: VehiclePreset): Float {
+        if (preset.isSinglePhaseAc) {
+            val singlePhaseKw = getSinglePhaseLimit(chargerKw)
+            return minOf(singlePhaseKw, preset.maxAcKw)
+        } else {
+            return preset.maxAcKw
         }
     }
 
@@ -35,17 +65,13 @@ object ChargingCalculator {
         val energyNeeded = effectiveCapacity * deltaSoc / 100f
 
         val vehicleMaxChargerKw = if (isAc) {
-            if (preset.isSinglePhaseAc) {
-                minOf(preset.maxAcKw, getSinglePhaseLimit(chargerKw))
-            } else {
-                preset.maxAcKw
-            }
+            getEffectiveAcChargerKw(chargerKw, preset)
         } else {
             preset.maxDcKw
         }
 
         val effectivePowerKw = minOf(chargerKw, vehicleMaxChargerKw)
-        val isCapped = chargerKw > vehicleMaxChargerKw
+        val isCapped = chargerKw > effectivePowerKw
 
         val efficiency = efficiencyOverride ?: (if (isAc) preset.acEfficiency else preset.dcEfficiency)
         val gridEnergyDrawn = energyNeeded / efficiency
