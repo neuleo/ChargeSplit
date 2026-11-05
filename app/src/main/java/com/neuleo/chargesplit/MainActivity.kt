@@ -181,17 +181,24 @@ fun ChargeSplitScreen(
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("chargesplit_prefs", Context.MODE_PRIVATE)
 
-    val batteryCapacity = prefsManager.getBatteryCapacityForPreset(activePreset) * (1f - prefsManager.batteryDegradation / 100f)
+    val degradation = prefsManager.getBatteryDegradationForPreset(activePreset)
+    val batteryCapacity = prefsManager.getBatteryCapacityForPreset(activePreset) * (1f - degradation / 100f)
     val costPerKWh = prefsManager.costPerKWh
     val efficiency = activePreset.acEfficiency
 
-    var startSOC by remember { mutableStateOf(prefs.getFloat("startSOC", 60f)) }
-    var endSOC by remember { mutableStateOf(prefs.getFloat("endSOC", 40f)) }
+    var startSOC by remember(activePreset) {
+        mutableStateOf(prefs.getFloat("charge_split_start_soc_${activePreset.name}", prefs.getFloat("startSOC", 20f)))
+    }
+    var endSOC by remember(activePreset) {
+        mutableStateOf(prefs.getFloat("charge_split_end_soc_${activePreset.name}", prefs.getFloat("endSOC", 80f)))
+    }
     var passengers by remember { mutableStateOf(prefs.getInt("passengers", 0)) }
     var resultText by remember { mutableStateOf("") }
 
-    LaunchedEffect(startSOC, endSOC, passengers) {
+    LaunchedEffect(startSOC, endSOC, passengers, activePreset) {
         with(prefs.edit()) {
+            putFloat("charge_split_start_soc_${activePreset.name}", startSOC)
+            putFloat("charge_split_end_soc_${activePreset.name}", endSOC)
             putFloat("startSOC", startSOC)
             putFloat("endSOC", endSOC)
             putInt("passengers", passengers)
@@ -217,13 +224,13 @@ fun ChargeSplitScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Kapazität: ${String.format(Locale.GERMANY, "%.1f", batteryCapacity)} kWh | Strompreis: ${String.format(Locale.GERMANY, "%.2f", costPerKWh)} €/kWh",
+                    text = "Kapazität: ${String.format(Locale.GERMANY, "%.1f", batteryCapacity)} kWh (Degradation: ${String.format(Locale.GERMANY, "%.1f", degradation)}%) | Strompreis: ${String.format(Locale.GERMANY, "%.2f", costPerKWh)} €/kWh",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
         }
 
-        Text(text = "Ladezustand am Start: ${startSOC.toInt()}%", style = MaterialTheme.typography.bodyLarge)
+        Text(text = "Ladezustand vor dem Laden (Start): ${startSOC.toInt()}%", style = MaterialTheme.typography.bodyLarge)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -249,7 +256,7 @@ fun ChargeSplitScreen(
             }
         }
 
-        Text(text = "Ladezustand am Ende: ${endSOC.toInt()}%", style = MaterialTheme.typography.bodyLarge)
+        Text(text = "Ladezustand nach dem Laden (Ziel): ${endSOC.toInt()}%", style = MaterialTheme.typography.bodyLarge)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)

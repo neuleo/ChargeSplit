@@ -25,7 +25,7 @@ fun SettingsDialog(
 ) {
     var selectedPreset by remember { mutableStateOf(prefsManager.selectedPreset) }
     var nominalText by remember { mutableStateOf(prefsManager.getBatteryCapacityForPreset(selectedPreset).toString()) }
-    var degradationText by remember { mutableStateOf(prefsManager.batteryDegradation.toString()) }
+    var degradationText by remember { mutableStateOf(prefsManager.getBatteryDegradationForPreset(selectedPreset).toString()) }
     var priceText by remember { mutableStateOf(prefsManager.costPerKWh.toString()) }
     var acEffText by remember { mutableStateOf((prefsManager.getAcEfficiencyForPreset(selectedPreset.id) * 100f).toInt().toString()) }
     var dcEffText by remember { mutableStateOf((prefsManager.getDcEfficiencyForPreset(selectedPreset.id) * 100f).toInt().toString()) }
@@ -80,6 +80,7 @@ fun SettingsDialog(
                                     selectedPreset = preset
                                     expanded = false
                                     nominalText = prefsManager.getBatteryCapacityForPreset(preset).toString()
+                                    degradationText = prefsManager.getBatteryDegradationForPreset(preset).toString()
                                     acEffText = (prefsManager.getAcEfficiencyForPreset(preset.id) * 100f).toInt().toString()
                                     dcEffText = (prefsManager.getDcEfficiencyForPreset(preset.id) * 100f).toInt().toString()
                                 }
@@ -126,11 +127,11 @@ fun SettingsDialog(
                     }
                 }
 
-                // Battery Degradation
+                // Battery Degradation (Vehicle-specific)
                 OutlinedTextField(
                     value = degradationText,
                     onValueChange = { degradationText = it },
-                    label = { Text("Batteriedegradation (%)") },
+                    label = { Text("Batteriedegradation für ${selectedPreset.shortName} (%)") },
                     isError = !isDegradationValid,
                     supportingText = {
                         if (!isDegradationValid) {
@@ -212,7 +213,7 @@ fun SettingsDialog(
                 if (calibratedChargers.isNotEmpty()) {
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     Text(
-                        text = "Kalibrierte Ladeeffizienzen",
+                        text = "Kalibrierte Ladeeffizienzen (${selectedPreset.shortName})",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 4.dp)
@@ -256,7 +257,7 @@ fun SettingsDialog(
                     if (canSave) {
                         prefsManager.selectedPreset = selectedPreset
                         prefsManager.setBatteryCapacityForPreset(selectedPreset, nominalText.toFloat())
-                        prefsManager.batteryDegradation = degradationText.toFloat()
+                        prefsManager.setBatteryDegradationForPreset(selectedPreset, degradationText.toFloat())
                         prefsManager.costPerKWh = priceText.toFloat()
                         prefsManager.setAcEfficiencyForPreset(selectedPreset.id, acEffText.toFloat() / 100f)
                         prefsManager.setDcEfficiencyForPreset(selectedPreset.id, dcEffText.toFloat() / 100f)

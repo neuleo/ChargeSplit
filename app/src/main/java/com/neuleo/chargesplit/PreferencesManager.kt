@@ -9,7 +9,8 @@ data class VehicleChargingState(
     val chargingMode: String = "16A",
     val customAmps: Int = 16,
     val customPhases: Int = 3,
-    val capacityKwh: Float = 85.5f
+    val capacityKwh: Float = 85.5f,
+    val batteryDegradation: Float = 0f
 )
 
 class PreferencesManager(private val prefs: SharedPreferences) {
@@ -43,8 +44,40 @@ class PreferencesManager(private val prefs: SharedPreferences) {
         set(value) = setBatteryCapacityForPreset(selectedPreset, value)
 
     var batteryDegradation: Float
-        get() = prefs.getFloat("pref_battery_degradation", 0.0f)
-        set(value) = prefs.edit().putFloat("pref_battery_degradation", value).apply()
+        get() = getBatteryDegradationForPreset(selectedPreset)
+        set(value) = setBatteryDegradationForPreset(selectedPreset, value)
+
+    fun getBatteryDegradationForPreset(preset: VehiclePreset): Float {
+        val key = "battery_degradation_${preset.name}"
+        if (prefs.contains(key)) {
+            return prefs.getFloat(key, 0.0f)
+        }
+        val legacyKey = "pref_${preset.id}_battery_degradation"
+        if (prefs.contains(legacyKey)) {
+            return prefs.getFloat(legacyKey, 0.0f)
+        }
+        if (preset == selectedPreset && prefs.contains("pref_battery_degradation")) {
+            return prefs.getFloat("pref_battery_degradation", 0.0f)
+        }
+        return 0.0f
+    }
+
+    fun setBatteryDegradationForPreset(preset: VehiclePreset, value: Float) {
+        prefs.edit().apply {
+            putFloat("battery_degradation_${preset.name}", value)
+            putFloat("pref_${preset.id}_battery_degradation", value)
+            if (preset == selectedPreset) {
+                putFloat("pref_battery_degradation", value)
+            }
+            apply()
+        }
+    }
+
+    fun getBatteryDegradationForPreset(presetId: String): Float =
+        getBatteryDegradationForPreset(VehiclePreset.fromName(presetId))
+
+    fun setBatteryDegradationForPreset(presetId: String, value: Float) =
+        setBatteryDegradationForPreset(VehiclePreset.fromName(presetId), value)
 
     var acEfficiency: Float
         get() = getAcEfficiencyForPreset(selectedPreset.id)
@@ -69,7 +102,7 @@ class PreferencesManager(private val prefs: SharedPreferences) {
         set(value) = setWearCostPer1600ForPreset(selectedPreset.id, value)
 
     val effectiveCapacity: Float
-        get() = batteryNominalKwh * (1.0f - batteryDegradation / 100.0f)
+        get() = batteryNominalKwh * (1.0f - getBatteryDegradationForPreset(selectedPreset) / 100.0f)
 
     fun applyPreset(preset: VehiclePreset) {
         selectedPreset = preset
@@ -78,6 +111,7 @@ class PreferencesManager(private val prefs: SharedPreferences) {
     // Vehicle Charging State Persistence
     fun getVehicleChargingState(preset: VehiclePreset): VehicleChargingState {
         val capacity = getBatteryCapacityForPreset(preset)
+        val degradation = getBatteryDegradationForPreset(preset)
         val currentSoc = prefs.getFloat("current_soc_${preset.name}", 20f)
         val targetSoc = prefs.getFloat("target_soc_${preset.name}", 80f)
         val chargingMode = prefs.getString("charging_mode_${preset.name}", "16A") ?: "16A"
@@ -90,7 +124,8 @@ class PreferencesManager(private val prefs: SharedPreferences) {
             chargingMode = chargingMode,
             customAmps = customAmps,
             customPhases = customPhases,
-            capacityKwh = capacity
+            capacityKwh = capacity,
+            batteryDegradation = degradation
         )
     }
 
@@ -103,8 +138,11 @@ class PreferencesManager(private val prefs: SharedPreferences) {
             putInt("custom_phases_${preset.name}", state.customPhases)
             putFloat("battery_capacity_${preset.name}", state.capacityKwh)
             putFloat("pref_${preset.id}_battery_nominal_kwh", state.capacityKwh)
+            putFloat("battery_degradation_${preset.name}", state.batteryDegradation)
+            putFloat("pref_${preset.id}_battery_degradation", state.batteryDegradation)
             if (preset == selectedPreset) {
                 putFloat("pref_battery_nominal_kwh", state.capacityKwh)
+                putFloat("pref_battery_degradation", state.batteryDegradation)
             }
             apply()
         }

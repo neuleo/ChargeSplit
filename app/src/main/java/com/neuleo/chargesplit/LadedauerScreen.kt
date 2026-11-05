@@ -83,7 +83,8 @@ fun LadedauerScreen(
             chargingMode = newMode,
             customAmps = newAmps,
             customPhases = newPhases,
-            capacityKwh = prefsManager.getBatteryCapacityForPreset(activePreset)
+            capacityKwh = prefsManager.getBatteryCapacityForPreset(activePreset),
+            batteryDegradation = prefsManager.getBatteryDegradationForPreset(activePreset)
         )
         prefsManager.saveVehicleChargingState(activePreset, state)
     }
@@ -113,7 +114,7 @@ fun LadedauerScreen(
 
     // Calculation
     val capacity = prefsManager.getBatteryCapacityForPreset(activePreset)
-    val degradation = prefsManager.batteryDegradation
+    val degradation = prefsManager.getBatteryDegradationForPreset(activePreset)
     val effectiveCapacity = capacity * (1f - degradation / 100f)
     val deltaSoc = (targetSoc - startSoc).coerceAtLeast(0f)
     val energyNeeded = effectiveCapacity * (deltaSoc / 100f)

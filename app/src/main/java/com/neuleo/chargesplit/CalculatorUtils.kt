@@ -1,5 +1,7 @@
 package com.neuleo.chargesplit
 
+import kotlin.math.abs
+
 object CalculatorUtils {
     val TABS = listOf("Ladekosten", "Verschleiß", "Ladedauer")
 
@@ -22,7 +24,8 @@ object CalculatorUtils {
         costPerKWh: Float,
         passengers: Int
     ): ChargingCostResult {
-        val deltaSOC = (startSOC - endSOC).coerceAtLeast(0f)
+        // Delta zwischen Start- und Ziel-Akkustand (vor und nach dem Laden)
+        val deltaSOC = abs(endSOC - startSOC)
         val requiredKWh = (deltaSOC / 100f * batteryCapacity) / efficiency
         val totalCost = requiredKWh * costPerKWh
         val numPeople = passengers + 1

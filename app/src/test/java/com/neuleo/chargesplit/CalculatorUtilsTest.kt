@@ -23,6 +23,24 @@ class CalculatorUtilsTest {
     }
 
     @Test
+    fun testCalculateChargingCostChargingUp() {
+        // Charging from 20% to 80% (delta = 60%)
+        val result = CalculatorUtils.calculateChargingCost(
+            startSOC = 20f,
+            endSOC = 80f,
+            batteryCapacity = 70f,
+            efficiency = 0.90f,
+            costPerKWh = 0.35f,
+            passengers = 0
+        )
+        // (60 / 100 * 70) / 0.9 = 46.666... kWh
+        // 46.666 * 0.35 = 16.333... €
+        assertEquals(46.67f, result.requiredKWh, 0.01f)
+        assertEquals(16.33f, result.totalCost, 0.01f)
+        assertEquals(16.33f, result.costPerPerson, 0.01f)
+    }
+
+    @Test
     fun testCalculateWearCost() {
         val result = CalculatorUtils.calculateWearCost(
             kilometers = 160f,

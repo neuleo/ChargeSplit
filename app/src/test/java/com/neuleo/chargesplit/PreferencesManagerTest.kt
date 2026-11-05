@@ -228,6 +228,26 @@ class PreferencesManagerTest {
     }
 
     @Test
+    fun testVehicleSpecificDegradation() {
+        val fakePrefs = FakeSharedPreferences()
+        val manager = PreferencesManager(fakePrefs)
+
+        // Set degradation for Model S 90D
+        manager.setBatteryDegradationForPreset(VehiclePreset.TESLA_MODEL_S_90D, 12.0f)
+        assertEquals(12.0f, manager.getBatteryDegradationForPreset(VehiclePreset.TESLA_MODEL_S_90D))
+
+        // Leapmotor T03 should still be 0.0%
+        assertEquals(0.0f, manager.getBatteryDegradationForPreset(VehiclePreset.LEAPMOTOR_T03))
+
+        // Set degradation for Leapmotor T03
+        manager.setBatteryDegradationForPreset(VehiclePreset.LEAPMOTOR_T03, 3.5f)
+        assertEquals(3.5f, manager.getBatteryDegradationForPreset(VehiclePreset.LEAPMOTOR_T03))
+
+        // Tesla Model S 90D should still be 12.0%
+        assertEquals(12.0f, manager.getBatteryDegradationForPreset(VehiclePreset.TESLA_MODEL_S_90D))
+    }
+
+    @Test
     fun testCalibrationStatusAndClear() {
         val fakePrefs = FakeSharedPreferences()
         val manager = PreferencesManager(fakePrefs)
